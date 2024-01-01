@@ -7,6 +7,8 @@ import { getPackage } from './get_package';
 import { getBin } from './get_bin';
 import { tests } from './tests';
 import { isCargoNextestInstalled } from './is_cargo_nextest_install';
+import { isMakeAvailable } from './is_make_available';
+import path from 'path';
 
 async function exec(): Promise<string | null> {
     const editor = vscode.window.activeTextEditor;
@@ -17,11 +19,12 @@ async function exec(): Promise<string | null> {
 
     const filePath = editor.document.uri.fsPath;
     const makefilePath = await getMakefile(filePath);
-    const makefileValid = makefilePath ? isMakefileValid(makefilePath) : false; // Use isMakefileValid to check if the Makefile is valid
+    const makefileValid = makefilePath ? isMakefileValid(makefilePath) : false;
     const isTestContext = await isFileInTestContext();
     const crateType = await checkCrateType(filePath);
     const packageName = await getPackage(filePath);
     const binName = await getBin(filePath);
+    const make = await isMakeAvailable();
 
     console.log(`----------------------------------------------------------`);
     console.log(`makefile_path: ${makefilePath || "nil"}`);
@@ -50,8 +53,9 @@ async function exec(): Promise<string | null> {
                 return null;
             }
         }
-    } else if (makefileValid) {
-        const makefileDir = makefilePath ? vscode.Uri.parse(makefilePath).path : '';
+    // Make use of Makefile to override the cargo run and build commands
+    } else if ( make && makefileValid) {
+        const makefileDir = makefilePath ? path.dirname(vscode.Uri.parse(makefilePath).path) : '';
         if (crateType === "bin") {
             cmd = `make -C ${makefileDir} run`;
         } else if (crateType === "build") {

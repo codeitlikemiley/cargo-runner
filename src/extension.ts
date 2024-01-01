@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import exec from './exec';
-import isOnDocTestContext from './is_on_doc_test_context';
 
 export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('cargo-runner.exec', async () => {
@@ -22,13 +21,4 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}));
 
-	context.subscriptions.push(vscode.commands.registerCommand('cargo-runner.doc-test', async () => {
-		const editor = vscode.window.activeTextEditor;
-		if (!editor) {
-			vscode.window.showErrorMessage('No active editor found.');
-			return;
-		}
-		const docBlocks = isOnDocTestContext();
-		vscode.window.showInformationMessage(docBlocks ? `DOC: ${docBlocks}` : 'Not on documention test context.');
-	}));
 }

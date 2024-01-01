@@ -10,3 +10,5 @@ function isMakefileValid(makefilePath: string): boolean {
         return false;
     }
 }
+
+export { isMakefileValid };

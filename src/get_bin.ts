@@ -26,3 +26,4 @@ async function getBin(filePath: string): Promise<string | null> {
     }
     return null;
 }
+export { getBin };

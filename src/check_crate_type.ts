@@ -29,3 +29,5 @@ async function checkCrateType(filePath: string): Promise<string | null> {
     }
     return null;
 }
+
+export { checkCrateType };

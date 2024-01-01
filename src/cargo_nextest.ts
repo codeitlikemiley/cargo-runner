@@ -1,51 +1,40 @@
+import { checkCrateType } from "./check_crate_type";
+import { getPackage } from "./get_package";
+import { getTestName } from "./get_test_name";
+import { isFileInTestContext } from "./is_file_in_test_context";
 import * as vscode from 'vscode';
-import { checkCrateType } from './check_crate_type';
-import { getTestName } from './get_test_name';
 
-async function cargoNextest(packageName: string, binName: string): Promise<string | null> {
+async function cargoNextest(filePath: string, binName: string | null): Promise<string | null> {
+    // Check if the file is in a test context
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-        vscode.window.showErrorMessage('No active editor.');
+        vscode.window.showErrorMessage('No active editor found.');
+        return null;
+    }
+    const isInTestContext = await isFileInTestContext();
+    if (!isInTestContext) {
         return null;
     }
 
-    const filePath = editor.document.uri.fsPath;
+    // Get the test name
+    const testName = await getTestName(filePath);
+    if (!testName) {
+        return null;
+    }
+
+    // Check the crate type
     const crateType = await checkCrateType(filePath);
-    const testFnName =  getTestName();
-
-    // Determine if inside a test function
-    let insideTestFunction = false;
-    for (let i = 0; i < editor.document.lineCount; i++) {
-        const lineText = editor.document.lineAt(i).text;
-        if (lineText.includes("#[test]") || lineText.includes("#[tokio::test]")) {
-            insideTestFunction = true;
-            break;
-        }
+    if (crateType === 'bin' && binName) {
+        // If it's a binary crate and a binName is provided, use --bin
+        return `cargo test --bin ${binName} ${testName}`;
+    } else if (crateType === 'lib') {
+        // If it's a library crate, use the package name
+        const packageName = await getPackage(filePath);
+        return `cargo test --package ${packageName} ${testName}`;
     }
 
-    let cmd: string = '';
-
-    if (insideTestFunction) {
-        if (crateType === "bin") {
-            cmd = `cargo nextest run -p ${packageName} --bin ${binName}`;
-            if (testFnName) {
-                cmd += ` -- tests::${testFnName}`;
-            }
-        } else if (crateType === "lib") {
-            cmd = `cargo nextest run -p ${packageName}`;
-            if (testFnName) {
-                cmd += ` -- tests::${testFnName}`;
-            }
-        } else {
-            vscode.window.showErrorMessage('Unsupported crate type for test context.');
-            return null;
-        }
-    } else {
-        vscode.window.showErrorMessage('Not inside a test function.');
-        return null;
-    }
-
-    return cmd;
+    // For other crate types, return null
+    return null;
 }
 
 export { cargoNextest };

@@ -28,12 +28,10 @@ async function tests(filePath: string, packageName: string | null, binName: stri
     const isNextestInstalled = await isCargoNextestInstalled();
     const testCommand = isNextestInstalled ? 'nextest run' : 'test';
     const exactCaptureOption = isNextestInstalled ? '-- --exact --nocapture' : '--exact --nocapture';
-    
+
     if (crateType === 'bin' && binName) {
-        // cargo test --package packageName --bin example -- tests::test_example --exact --nocapture 
         return `cargo ${testCommand} --package ${packageName} --bin ${binName} -- tests::${testName} ${exactCaptureOption}`;
     } else if (crateType === 'lib') {
-        // cargo test --package packageName --lib -- tests::test_example --exact --nocapture 
         return `cargo ${testCommand} --package ${packageName} --lib -- tests::${testName} ${exactCaptureOption}`;
     }
 

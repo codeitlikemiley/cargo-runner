@@ -6,6 +6,7 @@ import { checkCrateType } from './check_crate_type';
 import { getPackage } from './get_package';
 import { getBin } from './get_bin';
 import { tests } from './tests';
+import { isCargoNextestInstalled } from './is_cargo_nextest_install';
 
 async function exec(): Promise<string | null> {
     const editor = vscode.window.activeTextEditor;
@@ -34,15 +35,16 @@ async function exec(): Promise<string | null> {
     let cmd: string | null;
 
     if (isTestContext) {
+        const isNextestInstalled = await isCargoNextestInstalled();
+        const testCommand = isNextestInstalled ? 'nextest run' : 'test';
+        const exactCaptureOption = isNextestInstalled ? '-- tests -- --nocapture' : '-- tests --nocapture';
         cmd = await tests(filePath ?? '', packageName ?? '', binName ?? '') ?? null;
         // if cmd is null then we need to run this cargo test 
         if (cmd == null) {
             if (crateType === 'bin') {
-                // cargo test --package packageName --bin example -- tests --nocapture
-                cmd = `cargo test --package ${packageName} --bin ${binName} -- tests --nocapture`;
+                cmd = `cargo ${testCommand} --package ${packageName} --bin ${binName} ${exactCaptureOption}`;
             } else if (crateType === 'lib') {
-                // cargo tests --package packageName --lib tests --nocapture
-                cmd = `cargo test --package ${packageName} --lib -- tests --nocapture`;
+                cmd = `cargo ${testCommand} --package ${packageName} --lib ${exactCaptureOption}`;
             } else {
                 console.log("Cannot run cargo tests for the current opened file");
                 return null;

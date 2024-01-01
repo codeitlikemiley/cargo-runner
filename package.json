@@ -1,7 +1,13 @@
 {
   "name": "cargo-runner",
   "displayName": "Cargo Runner",
-  "description": "Rust 10X Code Runner and Tester",
+  "description": "10X Rust Developer Tool to Run, Build, or Test without Mental Overhead",
+  "publisher": "masterustacean",
+  "icon": "images/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codeitlikemiley/cargo-runner"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.85.0"
@@ -15,11 +21,7 @@
     "commands": [
       {
         "command": "cargo-runner.exec",
-        "title": "Crates Run"
-      },
-      {
-        "command": "cargo-runner.doc-test",
-        "title": "Crates Doc Test"
+        "title": "Cargo Runner"
       }
     ],
     "keybindings": [

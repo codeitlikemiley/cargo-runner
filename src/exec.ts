@@ -42,40 +42,39 @@ async function exec(): Promise<string | null> {
         const testCommand = isNextestInstalled ? 'nextest run' : 'test';
         const exactCaptureOption = isNextestInstalled ? '-- tests -- --nocapture' : '-- tests --nocapture';
         cmd = await tests(filePath ?? '', packageName ?? '', binName ?? '') ?? null;
-        // if cmd is null then we need to run this cargo test 
-        if (cmd == null) {
-            if (crateType === 'bin') {
-                cmd = `cargo ${testCommand} --package ${packageName} --bin ${binName} ${exactCaptureOption}`;
-            } else if (crateType === 'lib') {
-                cmd = `cargo ${testCommand} --package ${packageName} --lib ${exactCaptureOption}`;
-            } else {
-                console.log("Cannot run cargo tests for the current opened file");
-                return null;
-            }
+        if (cmd !== null) {
+            return cmd;
         }
-    // Make use of Makefile to override the cargo run and build commands
-    } else if ( make && makefileValid) {
-        const makefileDir = makefilePath ? path.dirname(vscode.Uri.parse(makefilePath).path) : '';
-        if (crateType === "bin") {
-            cmd = `make -C ${makefileDir} run`;
-        } else if (crateType === "build") {
-            cmd = `make -C ${makefileDir} build`;
-        } else {
-            console.log("Cannot run makefile for current opened file.");
-            return null;
+        if (crateType === 'bin') {
+            return `cargo ${testCommand} --package ${packageName} --bin ${binName} ${exactCaptureOption}`;
         }
-    } else {
-        if (crateType === "bin") {
-            cmd = `cargo run -p ${packageName}${binName ? ` --bin ${binName}` : ""}`;
-        } else if (crateType === "build") {
-            cmd = `cargo build -p ${packageName}`;
-        } else {
-            console.log("Cannot run cargo commands for current opened file.");
-            return null;
+        if (crateType === 'lib') {
+            return `cargo ${testCommand} --package ${packageName} --lib ${exactCaptureOption}`;
         }
+        console.log("Cannot run cargo tests for the current opened file");
+        return null;
     }
 
-    return cmd;
+    if (make && makefileValid) {
+        const makefileDir = makefilePath ? path.dirname(vscode.Uri.parse(makefilePath).path) : '';
+        if (crateType === "bin") {
+            return `make -C ${makefileDir} run`;
+        }
+        if (crateType === "build") {
+            return `make -C ${makefileDir} build`;
+        }
+        console.log("Cannot run makefile for current opened file.");
+        return null;
+    }
+
+    if (crateType === "bin") {
+        return `cargo run -p ${packageName}${binName ? ` --bin ${binName}` : ""}`;
+    }
+    if (crateType === "build") {
+        return `cargo build -p ${packageName}`;
+    }
+    console.log("Cannot run cargo commands for current opened file.");
+    return null;
 }
 
 export { exec };

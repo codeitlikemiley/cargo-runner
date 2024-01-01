@@ -14,8 +14,40 @@
   "contributes": {
     "commands": [
       {
-        "command": "cargo-runner.helloWorld",
-        "title": "Hello World"
+        "command": "cargo-runner.getTestName",
+        "title": "getTestName"
+      },
+      {
+        "command": "cargo-runner.isWorkspace",
+        "title": "isWorkspace"
+      },
+      {
+        "command": "cargo-runner.getPackage",
+        "title": "getPackage"
+      },
+      {
+        "command": "cargo-runner.getMakefile",
+        "title": "getMakefile"
+      },
+      {
+        "command": "cargo-runner.isMakefileValid",
+        "title": "isMakefileValid"
+      },
+      {
+        "command": "cargo-runner.checkCrateType",
+        "title": "checkCrateType"
+      },
+      {
+        "command": "cargo-runner.isFileInTestContext",
+        "title": "isFileInTestContext"
+      },
+      {
+        "command": "cargo-runner.getBin",
+        "title": "getBin"
+      },
+      {
+        "command": "cargo-runner.cargoNextest",
+        "title": "Cargo Next Test"
       }
     ]
   },

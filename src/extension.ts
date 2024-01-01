@@ -21,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const filePath = editor.document.uri.fsPath;
 		const packageName = await getPackage(filePath);
 		const binName = await getBin(filePath);
-		const command = await tests(filePath, binName);
+		const command = await tests(filePath, packageName, binName);
 		if (command) {
 			vscode.window.showInformationMessage(`Command: ${command}`);
 		} else {

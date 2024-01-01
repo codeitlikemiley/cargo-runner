@@ -19,7 +19,7 @@ async function exec(): Promise<string | null> {
     const makefileValid = makefilePath ? isMakefileValid(makefilePath) : false; // Use isMakefileValid to check if the Makefile is valid
     const isTestContext = await isFileInTestContext();
     const crateType = await checkCrateType(filePath);
-    const packageName = await getPackage(filePath) || vscode.workspace.name;
+    const packageName = await getPackage(filePath);
     const binName = await getBin(filePath);
 
     console.log(`----------------------------------------------------------`);
@@ -34,7 +34,19 @@ async function exec(): Promise<string | null> {
     let cmd: string | null;
 
     if (isTestContext) {
-        cmd = await tests(filePath ?? '', binName ?? '') ?? null;
+        cmd = await tests(filePath ?? '', packageName ?? '', binName ?? '') ?? null;
+        // if cmd is null then we need to run this cargo test for the whole package and bin or just package in case of "lib" type crate
+        if (cmd == null) {
+            if (crateType === 'bin') {
+                // cargo test --package axum_service --bin example -- tests --nocapture
+                cmd = `cargo test --package ${packageName} --bin ${binName} -- tests --nocapture`;
+            } else if (crateType === 'lib') {
+                cmd = `cargo test --package ${packageName} --lib -- tests --nocapture`;
+            } else {
+                console.log("Cannot run cargo tests for the current opened file");
+                return null;
+            }
+        }
     } else if (makefileValid) {
         const makefileDir = makefilePath ? vscode.Uri.parse(makefilePath).path : '';
         if (crateType === "bin") {

@@ -1,32 +1,51 @@
 import * as vscode from 'vscode';
 
-function getTestName(): string | null {
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) { return null; }
+async function getTestName(filePath: string): Promise<string | null> {
+    const document = await vscode.workspace.openTextDocument(filePath);
+    const position = vscode.window.activeTextEditor?.selection.active;
 
-    const document = editor.document;
-    const cursorPosition = editor.selection.active.line;
+    if (!position) {
+        return null;
+    }
 
-    for (let i = cursorPosition; i >= 0; i--) {
-        const lineText = document.lineAt(i).text;
+    let testName: string | null = null;
+    let functionStart: number | null = null;
+    let braceCount = 0;
 
-        // Check for test annotations
-        if (lineText.includes("#[test]") || lineText.includes("#[tokio::test]")) {
-            // The function declaration is expected to be one of the next few lines
-            for (let j = i + 1; j < document.lineCount && j <= i + 5; j++) {
-                const fnLineText = document.lineAt(j).text;
-                if (fnLineText.includes("fn ")) {
-                    const fnIndex = fnLineText.indexOf("fn ");
-                    const functionStart = fnIndex + 3;
-                    const functionEnd = fnLineText.indexOf("(", functionStart);
-                    if (functionEnd !== -1) {
-                        return fnLineText.slice(functionStart, functionEnd).trim().split(/\s+/)[0];
-                    }
-                }
-            }
-            break; // Stop the search after inspecting possible function declaration lines
+    // Scan upwards for function start
+    for (let i = position.line; i >= 0; i--) {
+        const line = document.lineAt(i);
+        const match = line.text.match(/fn (\w+)\(/);
+        if (match) {
+            testName = match[1];
+            functionStart = i;
+            break;
         }
     }
+
+    // If we didn't find a function start, return null
+    if (functionStart === null) {
+        return null;
+    }
+
+    // Scan downwards for function end
+    for (let i = functionStart; i < document.lineCount; i++) {
+        const line = document.lineAt(i);
+        if (line.text.includes('{')) {
+            braceCount++;
+        }
+        if (line.text.includes('}')) {
+            braceCount--;
+        }
+        if (braceCount === 0) {
+            // If the current position is within the function bounds, return the function name
+            if (position.line >= functionStart && position.line <= i) {
+                return testName;
+            }
+            break;
+        }
+    }
+
     return null;
 }
 

@@ -16,6 +16,10 @@
       {
         "command": "cargo-runner.exec",
         "title": "Crates Run"
+      },
+      {
+        "command": "cargo-runner.doc-test",
+        "title": "Crates Doc Test"
       }
     ],
     "keybindings": [

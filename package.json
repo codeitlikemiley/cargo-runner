@@ -46,12 +46,12 @@
         "title": "getBin"
       },
       {
-        "command": "cargo-runner.cargoNextest",
-        "title": "Cargo Next Test"
+        "command": "cargo-runner.tests",
+        "title": "Crates Tests"
       },
       {
-        "command": "cargo-runner.runCargo",
-        "title": "Crates Runner"
+        "command": "cargo-runner.exec",
+        "title": "Crates Run"
       }
     ]
   },

@@ -4,7 +4,7 @@ import { getTestName } from "./get_test_name";
 import { isFileInTestContext } from "./is_file_in_test_context";
 import * as vscode from 'vscode';
 
-async function cargoNextest(filePath: string, binName: string | null): Promise<string | null> {
+async function tests(filePath: string, binName: string | null): Promise<string | null> {
     // Check if the file is in a test context
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
@@ -37,4 +37,4 @@ async function cargoNextest(filePath: string, binName: string | null): Promise<s
     return null;
 }
 
-export { cargoNextest };
+export { tests };

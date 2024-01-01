@@ -7,11 +7,11 @@ import { getBin } from './get_bin';
 import { getPackage } from './get_package';
 import { getTestName } from './get_test_name';
 import { cargoRun } from './exec';
-import { cargoNextest } from './cargo_nextest';
+import { tests } from './tests';
 
 export function activate(context: vscode.ExtensionContext) {
 
-	context.subscriptions.push(vscode.commands.registerCommand('cargo-runner.cargoNextest', async () => {
+	context.subscriptions.push(vscode.commands.registerCommand('cargo-runner.tests', async () => {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
 			vscode.window.showErrorMessage('No active editor found.');
@@ -21,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const filePath = editor.document.uri.fsPath;
 		const packageName = await getPackage(filePath);
 		const binName = await getBin(filePath);
-		const command = await cargoNextest(filePath, binName);
+		const command = await tests(filePath, binName);
 		if (command) {
 			vscode.window.showInformationMessage(`Command: ${command}`);
 		} else {

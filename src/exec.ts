@@ -5,7 +5,7 @@ import { isFileInTestContext } from './is_file_in_test_context';
 import { checkCrateType } from './check_crate_type';
 import { getPackage } from './get_package';
 import { getBin } from './get_bin';
-import { cargoNextest } from './cargo_nextest';
+import { tests } from './tests';
 
 async function exec(): Promise<string | null> {
     const editor = vscode.window.activeTextEditor;
@@ -34,7 +34,7 @@ async function exec(): Promise<string | null> {
     let cmd = '';
 
     if (isTestContext) {
-        cmd = await cargoNextest(packageName ?? '', binName ?? '') ?? '';
+        cmd = await tests(packageName ?? '', binName ?? '') ?? '';
     } else if (makefileValid) {
         const makefileDir = makefilePath ? vscode.Uri.parse(makefilePath).path : '';
         if (crateType === "bin") {

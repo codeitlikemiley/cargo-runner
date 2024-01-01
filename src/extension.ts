@@ -6,13 +6,11 @@ import { isFileInTestContext } from './is_file_in_test_context';
 import { getBin } from './get_bin';
 import { getPackage } from './get_package';
 import { getTestName } from './get_test_name';
-import { cargoRun } from './cargo_run';
+import { cargoRun } from './exec';
 import { cargoNextest } from './cargo_nextest';
 
 export function activate(context: vscode.ExtensionContext) {
 
-	// add `cargo-runner.cargoNextest` command
-	// add `cargo-runner.cargoNextest` command
 	context.subscriptions.push(vscode.commands.registerCommand('cargo-runner.cargoNextest', async () => {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
@@ -30,6 +28,8 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showInformationMessage('Not a test.');
 		}
 	}));
+	
+	// add `cargo-runner.exec` command
 
 
 

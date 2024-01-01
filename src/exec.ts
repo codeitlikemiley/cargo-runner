@@ -7,7 +7,7 @@ import { getPackage } from './get_package';
 import { getBin } from './get_bin';
 import { cargoNextest } from './cargo_nextest';
 
-async function cargoRun(): Promise<string | null> {
+async function exec(): Promise<string | null> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
         console.log('No active file.');
@@ -59,4 +59,4 @@ async function cargoRun(): Promise<string | null> {
     return cmd;
 }
 
-export { cargoRun };
+export { exec as cargoRun };

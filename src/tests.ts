@@ -4,7 +4,7 @@ import { getTestName } from "./get_test_name";
 import { isFileInTestContext } from "./is_file_in_test_context";
 import * as vscode from 'vscode';
 
-async function tests(filePath: string,packageName: string |null, binName: string | null): Promise<string | null> {
+async function tests(filePath: string, packageName: string | null, binName: string | null): Promise<string | null> {
     // Check if the file is in a test context
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
@@ -25,13 +25,11 @@ async function tests(filePath: string,packageName: string |null, binName: string
     // Check the crate type
     const crateType = await checkCrateType(filePath);
     if (crateType === 'bin' && binName) {
-        // If it's a binary crate and a binName is provided, use --bin
-        //cargo test --package axum_service --bin example -- tests::test_example --exact --nocapture 
-        return `cargo test --bin ${binName} ${testName}`;
+        // cargo test --package packageName --bin example -- tests::test_example --exact --nocapture 
+        return `cargo test --package ${packageName} --bin ${binName} -- tests::${testName} --exact --nocapture`;
     } else if (crateType === 'lib') {
-        // If it's a library crate, use the package name
-        const packageName = await getPackage(filePath);
-        return `cargo test --package ${packageName} ${testName}`;
+        // cargo test --package packageName --lib -- tests::test_example --exact --nocapture 
+        return `cargo test --package ${packageName} --lib -- tests::${testName} --exact --nocapture`;
     }
 
     // For other crate types, return null

@@ -2,6 +2,8 @@
 
 > **10X Rust Developer Tool to Run, Build, or Test without Mental Overhead**
 
+![cover](./images/cover.png)
+
 Cargo Runner is a powerful and intuitive tool designed to streamline the development workflow for Rust programmers. It integrates seamlessly into your development environment, allowing you to execute essential tasks like running, building, and testing Rust projects with minimal effort and maximum efficiency.
 
 ## Features
@@ -14,6 +16,13 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
 - **Real-Time Feedback**: Immediate visual feedback on the status of build and test processes, helping you identify and fix issues more quickly.
 - **Customizable Environment**: Tailor Cargo Runner to your workflow with customizable settings and keybindings.
 
+## Demo Screenshot
+
+![Run](./images/run.png)
+---
+![Build](./images/build.png)
+---
+![Test](./images/nextest.png)
 
 ## Advanced Features
 
@@ -23,7 +32,10 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
 Create a Makefile on Rust project, you can have multiple Makefile if your working with Cargo Workspace
 The choice is yours
 
+![Makefile](./images/makefile.png)
+
 below is example makefile , you can add to you project to test 
+
 ```
 # Makefile for a Rust project using cargo-leptos and cargo-nextest
 

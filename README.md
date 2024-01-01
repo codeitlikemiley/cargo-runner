@@ -1,4 +1,4 @@
-# cargo-runner README
+# Crates Runner
 
 This is the README for your extension "cargo-runner". After writing up a brief description, we recommend including the following sections.
 

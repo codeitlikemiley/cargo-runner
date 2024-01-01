@@ -14,44 +14,16 @@
   "contributes": {
     "commands": [
       {
-        "command": "cargo-runner.getTestName",
-        "title": "getTestName"
-      },
-      {
-        "command": "cargo-runner.isWorkspace",
-        "title": "isWorkspace"
-      },
-      {
-        "command": "cargo-runner.getPackage",
-        "title": "getPackage"
-      },
-      {
-        "command": "cargo-runner.getMakefile",
-        "title": "getMakefile"
-      },
-      {
-        "command": "cargo-runner.isMakefileValid",
-        "title": "isMakefileValid"
-      },
-      {
-        "command": "cargo-runner.checkCrateType",
-        "title": "checkCrateType"
-      },
-      {
-        "command": "cargo-runner.isFileInTestContext",
-        "title": "isFileInTestContext"
-      },
-      {
-        "command": "cargo-runner.getBin",
-        "title": "getBin"
-      },
-      {
-        "command": "cargo-runner.tests",
-        "title": "Crates Tests"
-      },
-      {
         "command": "cargo-runner.exec",
         "title": "Crates Run"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "cargo-runner.exec",
+        "key": "ctrl+r",
+        "mac": "cmd+r",
+        "when": "editorTextFocus"
       }
     ]
   },

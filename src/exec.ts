@@ -31,10 +31,10 @@ async function exec(): Promise<string | null> {
     console.log(`bin_name: ${binName || "nil"}`);
     console.log(`----------------------------------------------------------`);
 
-    let cmd = '';
+    let cmd: string | null;
 
     if (isTestContext) {
-        cmd = await tests(packageName ?? '', binName ?? '') ?? '';
+        cmd = await tests(filePath ?? '', binName ?? '') ?? null;
     } else if (makefileValid) {
         const makefileDir = makefilePath ? vscode.Uri.parse(makefilePath).path : '';
         if (crateType === "bin") {
@@ -59,4 +59,4 @@ async function exec(): Promise<string | null> {
     return cmd;
 }
 
-export { exec as cargoRun };
+export { exec };

@@ -6,8 +6,8 @@ import { isFileInTestContext } from './is_file_in_test_context';
 import { getBin } from './get_bin';
 import { getPackage } from './get_package';
 import { getTestName } from './get_test_name';
-import { cargoRun } from './exec';
 import { tests } from './tests';
+import { exec } from './exec';
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -28,9 +28,22 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showInformationMessage('Not a test.');
 		}
 	}));
-	
-	// add `cargo-runner.exec` command
 
+	// add `cargo-runner.exec` command
+	context.subscriptions.push(vscode.commands.registerCommand('cargo-runner.exec', async () => {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			vscode.window.showErrorMessage('No active editor found.');
+			return;
+		}
+		const command = await exec();
+		if (command) {
+			vscode.window.showInformationMessage(`Command: ${command}`);
+		} else {
+			vscode.window.showInformationMessage('Cannot run.');
+		}
+
+	}));
 
 
 	context.subscriptions.push(vscode.commands.registerCommand('cargo-runner.checkCrateType', async () => {
@@ -108,5 +121,4 @@ export function activate(context: vscode.ExtensionContext) {
 	));
 }
 
-export function deactivate() { }
 

@@ -77,4 +77,4 @@ async function exec(): Promise<string | null> {
     return null;
 }
 
-export { exec };
+export default exec;

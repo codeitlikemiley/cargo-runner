@@ -27,9 +27,10 @@ export function activate(context: vscode.ExtensionContext) {
 			const filePath = activeEditor.document.uri.path;
 			const position = vscode.window.activeTextEditor?.selection.active;
 
-			
-			const result = await isDocTest(filePath, position);
-			vscode.window.showInformationMessage(`Is on doc-test: ${result}`);
+
+			const {  isValid, fnName } = await isDocTest(filePath, position);
+			vscode.window.showInformationMessage(`Is on doc-test: ${isValid}, function name: ${fnName}`);
+
 		}
 	}));
 

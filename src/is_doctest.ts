@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 
-async function isDocTest(filePath: string, position: vscode.Position | undefined): Promise<boolean> {
+async function isDocTest(filePath: string, position: vscode.Position | undefined): Promise<{ isValid: boolean, fnName: string | null }> {
     if (!position) {
         console.log("Position is undefined.");
-        return false;
+        return { isValid: false, fnName: null };
     }
     const document = await vscode.workspace.openTextDocument(filePath);
 
@@ -13,6 +13,7 @@ async function isDocTest(filePath: string, position: vscode.Position | undefined
     let functionEnd: number | null = null;
     let braceCount = 0;
     let inFunction = false;
+    let functionName: string | null = null;
 
     console.log(`Starting scan from position: ${position.line}`);
 
@@ -26,8 +27,9 @@ async function isDocTest(filePath: string, position: vscode.Position | undefined
             const match = line.match(/(async\s+)?fn\s+(\w+)\s*\(/);
             if (match) {
                 functionStart = i;
+                functionName = match[2];
                 inFunction = true;
-                console.log(`Function start found at line ${i}`);
+                console.log(`Function '${functionName}' start found at line ${i}`);
             }
         }
 
@@ -47,7 +49,7 @@ async function isDocTest(filePath: string, position: vscode.Position | undefined
 
     if (functionStart === null && !foundDocComment) {
         console.log("No function or doc comment found.");
-        return false;
+        return { isValid: false, fnName: null };
     }
 
     // If function start was found, scan downwards to find function end
@@ -64,7 +66,7 @@ async function isDocTest(filePath: string, position: vscode.Position | undefined
                 braceCount--;
                 if (braceCount === 0) {
                     functionEnd = i;
-                    console.log(`Function end found at line ${i}`);
+                    console.log(`Function '${functionName}' end found at line ${i}`);
                     break;
                 }
             }
@@ -74,9 +76,10 @@ async function isDocTest(filePath: string, position: vscode.Position | undefined
     // Check if position is within the bounds of the function or doc comment
     const inDocComment = foundDocComment && docCommentStart !== null && position.line <= docCommentStart;
     const inFunctionBody = functionStart !== null && functionEnd !== null && position.line >= functionStart && position.line <= functionEnd;
+    const isValid = inDocComment || inFunctionBody;
 
-    console.log(`Position ${position.line} is in doc comment: ${inDocComment}, in function body: ${inFunctionBody}`);
-    return inDocComment || inFunctionBody;
+    console.log(`Position ${position.line} is in doc comment: ${inDocComment}, in function body: ${inFunctionBody}, isValid: ${isValid}, functionName: ${functionName}`);
+    return { isValid, fnName: functionName };
 }
 
 export default isDocTest;

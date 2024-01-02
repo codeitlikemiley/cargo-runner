@@ -2,7 +2,7 @@
 
 > **10X Rust Developer Tool to Run, Build, or Test without Mental Overhead**
 
-![cover](./images/cover.png)
+![cover](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/cover.png?raw=true)
 
 Cargo Runner is a powerful and intuitive tool designed to streamline the development workflow for Rust programmers. It integrates seamlessly into your development environment, allowing you to execute essential tasks like running, building, and testing Rust projects with minimal effort and maximum efficiency.
 
@@ -18,11 +18,11 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
 
 ## Demo Screenshot
 
-![Run](./images/run.png)
+![Run](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/run.png?raw=true)
 ---
-![Build](./images/build.png)
+![Build](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/build.png?raw=true)
 ---
-![Test](./images/nextest.png)
+![Test](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/nextest.png?raw=true)
 
 ## Advanced Features
 
@@ -32,7 +32,7 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
 Create a Makefile on Rust project, you can have multiple Makefile if your working with Cargo Workspace
 The choice is yours
 
-![Makefile](./images/makefile.png)
+![Makefile](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/makefile.png?raw=true)
 
 below is example makefile , you can add to you project to test 
 

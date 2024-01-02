@@ -112,47 +112,43 @@ function exhaustiveSearchForDocTest(document: vscode.TextDocument, position: vsc
     for (let i = position.line; i >= 0; i--) {
         const line = document.lineAt(i).text.trim();
 
+        // If end of a different doc comment or another doc comment start found
+        if (line.includes('*/') || line.startsWith('///')) {
+            break;
+        }
+
+        // Check for start of doc comment or code block
         if (line.startsWith('/**')) {
             inDocCommentBlock = true;
         }
-
         if (line.includes('```')) {
             codeBlockCount++;
         }
 
+        // Break if both doc comment and code block found
         if (inDocCommentBlock && codeBlockCount > 0) {
-            // Found both the doc comment and a code block
             break;
         }
     }
 
-    // If both doc comment and code block are not found, return false
-    if (!inDocCommentBlock || codeBlockCount === 0) {
-        return { isValid: false, fnName: null };
-    }
+    // Proceed only if both doc comment and code block are found
+    if (inDocCommentBlock && codeBlockCount > 0) {
+        // Scan downwards for the function name
+        for (let i = position.line; i < document.lineCount; i++) {
+            const line = document.lineAt(i).text.trim();
 
-    // Scan downwards for the function name, ensuring we're past the code block and comment end
-    let pastCodeBlock = false;
-    for (let i = position.line; i < document.lineCount; i++) {
-        const line = document.lineAt(i).text.trim();
-
-        if (line.includes('```')) {
-            pastCodeBlock = !pastCodeBlock;
-        }
-
-        if (line.includes('*/')) {
-            pastCodeBlock = false;  // Ensure we are past the closing comment tag
-        }
-
-        const fnMatch = line.match(/^(pub\s+)?(async\s+)?fn\s+(\w+)/);
-        if (fnMatch && !pastCodeBlock) {
-            functionName = fnMatch[3];
-            break;
+            // Check for function declaration
+            const fnMatch = line.match(/^(pub\s+)?(async\s+)?fn\s+(\w+)/);
+            if (fnMatch) {
+                functionName = fnMatch[3];
+                break;
+            }
         }
     }
 
-    return { isValid: functionName !== null, fnName: functionName };
+    return { isValid: inDocCommentBlock && codeBlockCount > 0 && functionName !== null, fnName: functionName };
 }
+
 
 
 export default handleOptimizedDocTest;

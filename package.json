@@ -22,6 +22,18 @@
       {
         "command": "cargo-runner.exec",
         "title": "Cargo Runner"
+      },
+      {
+        "command": "cargo-runner.doc-test",
+        "title": "Doc Test"
+      },
+      {
+        "command": "cargo-runner.test-doc-attr",
+        "title": "Doc Test Attr"
+      },
+      {
+        "command": "cargo-runner.test-multiline-doc",
+        "title": "Doc multiline Test"
       }
     ],
     "keybindings": [

@@ -20,5 +20,4 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showInformationMessage('Cannot run.');
 		}
 	}));
-
 }

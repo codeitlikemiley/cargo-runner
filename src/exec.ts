@@ -9,6 +9,9 @@ import { tests } from './tests';
 import { isCargoNextestInstalled } from './is_cargo_nextest_install';
 import { isMakeAvailable } from './is_make_available';
 import path from 'path';
+import handleDocAttribute from './handle_doc_attribute';
+import handleDocTest from './handle_doc_test';
+import handleMultilineDocTest from './handle_multiline_docs';
 
 async function exec(): Promise<string | null> {
     const editor = vscode.window.activeTextEditor;
@@ -49,6 +52,7 @@ async function exec(): Promise<string | null> {
             return `cargo ${testCommand} --package ${packageName} --bin ${binName} ${exactCaptureOption}`;
         }
         if (crateType === 'lib') {
+            // If no doc tests, run the regular test command
             return `cargo ${testCommand} --package ${packageName} --lib ${exactCaptureOption}`;
         }
         console.log("Cannot run cargo tests for the current opened file");
@@ -72,6 +76,20 @@ async function exec(): Promise<string | null> {
     }
     if (crateType === "build") {
         return `cargo build -p ${packageName}`;
+    }
+    const document = editor.document;
+    const position = editor.selection.active;
+    const docAttributeResult = await handleDocAttribute(document, position);
+    const docTestResult = await handleDocTest(document, position);
+    const multilineDocsResult = await handleMultilineDocTest(document, position);
+    // If any doc test function returns a valid function name, run the doc test
+    if (docAttributeResult?.isValid && docAttributeResult.fnName) {
+        // follow this format cargo test --doc --package auth_service -- login
+        return `cargo test --doc --package ${packageName} -- ${docAttributeResult.fnName}`;
+    } else if (docTestResult.isValid && docTestResult.fnName) {
+        return `cargo test --doc --package ${packageName} -- ${docTestResult.fnName}`;
+    } else if (multilineDocsResult.isValid && multilineDocsResult.fnName) {
+        return `cargo test --doc --package ${packageName} -- ${multilineDocsResult.fnName}`;
     }
     console.log("Cannot run cargo commands for current opened file.");
     return null;

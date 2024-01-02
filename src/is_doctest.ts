@@ -33,8 +33,8 @@ async function isDocTest(filePath: string, position: vscode.Position | undefined
             }
         }
 
-        // Check for doc comment
-        if (line.startsWith('///') && !foundDocComment) {
+        // Check for doc comment (both /// and /** */)
+        if ((line.startsWith('///') || line.startsWith('/**')) && !foundDocComment) {
             foundDocComment = true;
             docCommentStart = i;
             console.log(`Doc comment found starting at line ${i}`);
@@ -79,7 +79,7 @@ async function isDocTest(filePath: string, position: vscode.Position | undefined
     const isValid = inDocComment || inFunctionBody;
 
     console.log(`Position ${position.line} is in doc comment: ${inDocComment}, in function body: ${inFunctionBody}, isValid: ${isValid}, functionName: ${functionName}`);
-    return { isValid, fnName: functionName };
+    return { isValid, fnName: inFunctionBody ? functionName : null };
 }
 
 export default isDocTest;

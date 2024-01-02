@@ -18,11 +18,17 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
 
 ## Demo Screenshot
 
+### Run 
 ![Run](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/run.png?raw=true)
 ---
+### Build
 ![Build](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/build.png?raw=true)
 ---
+### Test
 ![Test](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/nextest.png?raw=true)
+---
+### Doc Test
+![Test](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/doc-test.png?raw=true)
 
 ## Advanced Features
 
@@ -67,6 +73,8 @@ clean:
 
 
 ## [License](./LICENSE)
+
+## [Changelog](./CHANGELOG.md)
 
 ---
 

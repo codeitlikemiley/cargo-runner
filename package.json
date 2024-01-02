@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/codeitlikemiley/cargo-runner"
   },
-  "version": "1.0.1",
+  "version": "1.1.0",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -22,18 +22,6 @@
       {
         "command": "cargo-runner.exec",
         "title": "Cargo Runner"
-      },
-      {
-        "command": "cargo-runner.doc-test",
-        "title": "Doc Test"
-      },
-      {
-        "command": "cargo-runner.test-doc-attr",
-        "title": "Doc Test Attr"
-      },
-      {
-        "command": "cargo-runner.test-multiline-doc",
-        "title": "Doc multiline Test"
       }
     ],
     "keybindings": [

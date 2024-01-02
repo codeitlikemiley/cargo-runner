@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import exec from './exec';
+import isDocTest from './is_doctest';
 
 export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('cargo-runner.exec', async () => {
@@ -18,6 +19,17 @@ export function activate(context: vscode.ExtensionContext) {
 			terminal.show();
 		} else {
 			vscode.window.showInformationMessage('Cannot run.');
+		}
+	}));
+	context.subscriptions.push(vscode.commands.registerCommand('cargo-runner.doc-test', async () => {
+		const activeEditor = vscode.window.activeTextEditor;
+		if (activeEditor) {
+			const filePath = activeEditor.document.uri.path;
+			const position = vscode.window.activeTextEditor?.selection.active;
+
+			
+			const result = await isDocTest(filePath, position);
+			vscode.window.showInformationMessage(`Is on doc-test: ${result}`);
 		}
 	}));
 

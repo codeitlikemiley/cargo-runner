@@ -22,6 +22,10 @@
       {
         "command": "cargo-runner.exec",
         "title": "Cargo Runner"
+      },
+      {
+        "command": "cargo-runner.doc-test",
+        "title": "Doc Test"
       }
     ],
     "keybindings": [

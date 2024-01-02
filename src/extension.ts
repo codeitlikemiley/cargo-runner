@@ -2,8 +2,7 @@ import * as vscode from 'vscode';
 import exec from './exec';
 import handleDocAttribute from './handle_doc_attribute';
 import handleDocTest from './handle_doc_test';
-import handleOptimizedDocTest from './handle_multiline_docs';
-
+import handleMultilineDocTest from './handle_multiline_docs';
 
 
 export function activate(context: vscode.ExtensionContext) {
@@ -56,7 +55,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const document = editor.document;
 		const position = editor.selection.active;
 
-		const result = await handleOptimizedDocTest(document, position);
+		const result = await handleMultilineDocTest(document, position);
 
 		if (result) {
 			vscode.window.showInformationMessage(`Doc attribute valid: ${result.isValid}, Function name: ${result.fnName}`);

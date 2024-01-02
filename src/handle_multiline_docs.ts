@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-async function handleOptimizedDocTest(document: vscode.TextDocument, position: vscode.Position): Promise<{ isValid: boolean, fnName: string | null }> {
+async function handleMultilineDocTest(document: vscode.TextDocument, position: vscode.Position): Promise<{ isValid: boolean, fnName: string | null }> {
     let currentLineText = document.lineAt(position.line).text.trim();
 
     // Immediate return cases
@@ -151,4 +151,4 @@ function exhaustiveSearchForDocTest(document: vscode.TextDocument, position: vsc
 
 
 
-export default handleOptimizedDocTest;
+export default handleMultilineDocTest;

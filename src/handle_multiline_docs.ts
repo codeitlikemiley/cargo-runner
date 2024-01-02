@@ -4,27 +4,21 @@ async function handleOptimizedDocTest(document: vscode.TextDocument, position: v
     let currentLineText = document.lineAt(position.line).text.trim();
 
     // Immediate return cases
-    // Done check
     if (currentLineText.startsWith('///') || currentLineText.startsWith('#[doc') || currentLineText.startsWith('#![doc')) {
         return { isValid: false, fnName: null };
     }
 
     // Check if current line is a function declaration
-    // Done check
     let fnMatch = currentLineText.match(/^(pub\s+)?(async\s+)?fn\s+(\w+)/);
     if (fnMatch) {
         return scanUpwardsForDocStartAndBackticks(document, position);
     }
 
-
     // Scenarios based on doc comment start or end
-    // Done check
     if (currentLineText.startsWith('/**')) {
         return scanDownwardsForBackticksAndFunction(document, position);
     }
 
-
-    // Done Check
     if (currentLineText.startsWith('*/')) {
         return scanForFunctionAndUpwardsForBackticks(document, position);
     }
@@ -129,19 +123,16 @@ function exhaustiveSearchForDocTest(document: vscode.TextDocument, position: vsc
         // Check for start of doc comment or code block
         if (line.startsWith('/**')) {
             inDocCommentBlock = true;
+            break;
         }
         if (line.includes('```')) {
             codeBlockCount++;
         }
 
-        // Break if both doc comment and code block found
-        if (inDocCommentBlock && codeBlockCount > 0) {
-            break;
-        }
     }
 
     // Proceed only if both doc comment and code block are found
-    if (inDocCommentBlock && codeBlockCount > 0) {
+    if (inDocCommentBlock) {
         // Scan downwards for the function name
         for (let i = position.line; i < document.lineCount; i++) {
             const line = document.lineAt(i).text.trim();

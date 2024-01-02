@@ -3,24 +3,31 @@ import * as vscode from 'vscode';
 async function handleOptimizedDocTest(document: vscode.TextDocument, position: vscode.Position): Promise<{ isValid: boolean, fnName: string | null }> {
     let currentLineText = document.lineAt(position.line).text.trim();
 
-    // // Immediate return cases
-    // if (currentLineText.startsWith('///') || currentLineText.startsWith('#[doc') || currentLineText.startsWith('#![doc')) {
-    //     return { isValid: false, fnName: null };
-    // }
+    // Immediate return cases
+    // Done check
+    if (currentLineText.startsWith('///') || currentLineText.startsWith('#[doc') || currentLineText.startsWith('#![doc')) {
+        return { isValid: false, fnName: null };
+    }
 
-    // // Check if current line is a function declaration
-    // let fnMatch = currentLineText.match(/^(pub\s+)?(async\s+)?fn\s+(\w+)/);
-    // if (fnMatch) {
-    //     return scanUpwardsForDocStartAndBackticks(document, position);
-    // }
+    // Check if current line is a function declaration
+    // Done check
+    let fnMatch = currentLineText.match(/^(pub\s+)?(async\s+)?fn\s+(\w+)/);
+    if (fnMatch) {
+        return scanUpwardsForDocStartAndBackticks(document, position);
+    }
 
-    // // Scenarios based on doc comment start or end
-    // if (currentLineText.startsWith('/**')) {
-    //     return scanDownwardsForBackticksAndFunction(document, position);
-    // }
-    // if (currentLineText.startsWith('*/')) {
-    //     return scanForFunctionAndUpwardsForBackticks(document, position);
-    // }
+
+    // Scenarios based on doc comment start or end
+    // Done check
+    if (currentLineText.startsWith('/**')) {
+        return scanDownwardsForBackticksAndFunction(document, position);
+    }
+
+
+    // Done Check
+    if (currentLineText.startsWith('*/')) {
+        return scanForFunctionAndUpwardsForBackticks(document, position);
+    }
 
     // Exhaustive search for other cases
     return exhaustiveSearchForDocTest(document, position);
@@ -29,7 +36,12 @@ async function handleOptimizedDocTest(document: vscode.TextDocument, position: v
 function scanUpwardsForDocStartAndBackticks(document: vscode.TextDocument, position: vscode.Position): { isValid: boolean, fnName: string | null } {
     let inDocCommentBlock = false;
     let inCodeBlock = false;
-    let functionName = document.lineAt(position.line).text.match(/^(pub\s+)?(async\s+)?fn\s+(\w+)/)?.[3] || null;
+    console.log("debugger start")
+
+    console.log(document.lineAt(position.line).text)
+
+    console.log("debugger end")
+    let functionName = document.lineAt(position.line).text.trim().match(/^(pub\s+)?(async\s+)?fn\s+(\w+)/)?.[3] || null;
 
     for (let i = position.line; i >= 0; i--) {
         const line = document.lineAt(i).text.trim();
@@ -60,12 +72,8 @@ function scanDownwardsForBackticksAndFunction(document: vscode.TextDocument, pos
         }
 
         if (line.includes('*/')) {
-            break;
-        }
-
-        const fnMatch = line.match(/^(pub\s+)?(async\s+)?fn\s+(\w+)/);
-        if (fnMatch && inCodeBlock) {
-            functionName = fnMatch[3];
+            // Extract function name after the doc comment block ends
+            functionName = document.lineAt(i + 1).text.trim().match(/^(pub\s+)?(async\s+)?fn\s+(\w+)/)?.[3] || null;
             break;
         }
     }
@@ -87,6 +95,7 @@ function scanForFunctionAndUpwardsForBackticks(document: vscode.TextDocument, po
             functionName = fnMatch[3];
             break;
         }
+
     }
 
     // Scanning upwards for backticks

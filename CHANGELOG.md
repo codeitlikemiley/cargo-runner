@@ -4,6 +4,10 @@ All notable changes to the "cargo-runner" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 1.1.1
+- Fix Issue on non workspace type rust project / simple rust project where package and bin is null
+- Fix Issue on files inside bin/ folder not being able to run it
+
 ## 1.1.0
 - Added Feature to Run Doc Test
 - Correctly Parse /// with ```codeblock ```

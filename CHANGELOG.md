@@ -3,6 +3,8 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.1.2
+- Added Instruction on how to use the extension
 
 ## 1.1.1
 - Fix Issue on non workspace type rust project / simple rust project where package and bin is null

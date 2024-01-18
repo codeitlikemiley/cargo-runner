@@ -6,8 +6,9 @@ async function checkCrateType(filePath: string): Promise<string | null> {
     const fileTypes = ['/main.rs', '/lib.rs', '/build.rs'];
     const crateTypes = ['bin', 'lib', 'build'];
     const parentDir = path.dirname(filePath);
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
 
-    if (path.basename(parentDir) === 'bin') {
+    if (path.basename(parentDir) === 'bin' && fileContent.includes('fn main()')) {
         return 'bin';
     }
 

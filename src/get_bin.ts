@@ -19,6 +19,13 @@ async function getBin(filePath: string): Promise<string | null> {
     // Find Cargo.toml
     let currentDir = path.dirname(filePath);
     const workspaceRoot = vscode.workspace.rootPath; // Get the workspace root path
+    
+    // special case when our file is in the bin directory
+    if (path.basename(currentDir) === 'bin') {
+        return path.basename(filePath, '.rs');
+    }
+
+
     while (!fs.existsSync(path.join(currentDir, 'Cargo.toml'))) {
         if (currentDir === workspaceRoot) {
             return null; // Reached the workspace root

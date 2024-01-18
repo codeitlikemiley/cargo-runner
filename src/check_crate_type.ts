@@ -5,6 +5,11 @@ import * as path from 'path';
 async function checkCrateType(filePath: string): Promise<string | null> {
     const fileTypes = ['/main.rs', '/lib.rs', '/build.rs'];
     const crateTypes = ['bin', 'lib', 'build'];
+    const parentDir = path.dirname(filePath);
+
+    if (path.basename(parentDir) === 'bin') {
+        return 'bin';
+    }
 
     for (let i = 0; i < fileTypes.length; i++) {
         if (filePath.endsWith(fileTypes[i])) {

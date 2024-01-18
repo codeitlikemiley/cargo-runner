@@ -18,16 +18,101 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
 
 ## Demo Screenshot
 
-### Run 
+### Cargo Run 
+
+> Press <kbd>CMD</kbd>+<kbd>R</kbd> on Cursor
+
+1. Simple Rust project with `src/main.rs`
+2. Any Rust file that has main function located at `/bin/*` folder (Implicit not declared on Cargo.toml)
+3. any file declared as [[bin]] on Cargo.toml e.g.
+
+```toml
+[[bin]] 
+path = "src/example.rs"
+name ="example"
+```
+4. Workspace Crates
+
 ![Run](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/run.png?raw=true)
+
 ---
-### Build
+### Cargo Build
+
+> Press <kbd>CMD</kbd>+<kbd>R</kbd> on Cursor
+1. Any build.rs file that has main() fn
+
 ![Build](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/build.png?raw=true)
 ---
-### Test
+### Cargo Test or Cargo Nextest (if installed)
+> Press <kbd>CMD</kbd>+<kbd>R</kbd> on  Cursor
+1. Any file on lib.rs or main.rs or file declared as [[bin]] that has the macro : #[test] and #[tokio::test]
+
+Note: If you press inside the context of function test then it would run that single test, if you run it outside any function test which is inside any mod test it would run the whole test
+
 ![Test](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/nextest.png?raw=true)
 ---
-### Doc Test
+### Doc Test (Lib crate ONLY)
+> Press <kbd>CMD</kbd>+<kbd>R</kbd> on  Cursor Any file on crate Type `lib` that has doc test
+
+1. Multiline Comment Doctest
+```rust
+/**
+    Logout from the service
+    ```
+    use crate::auth_service::auth::auth_service_server::AuthService;
+    use crate::auth_service::auth::{LogoutRequest, LogoutResponse};
+    use crate::auth_service::auth_impl::AuthServiceImpl;
+    use tonic::Request;
+
+    let service = AuthServiceImpl::default();
+    let request = Request::new(LogoutRequest {
+        token: "".to_string(),
+    });
+    let rt = tokio::runtime::Runtime::new();
+    let response = rt.unwrap().block_on(service.logout(request)).unwrap();
+    assert_eq!(response.into_inner().success, true);
+    ```
+    */
+    async fn logout(
+```
+
+2. using Doc Macro Doc Test
+
+```rust
+#[doc = r#"Signup to the service
+use crate::auth_service::auth::auth_service_server::AuthService;
+use crate::auth_service::auth::{SignupRequest, SignupResponse};
+use crate::auth_service::auth_impl::AuthServiceImpl;
+use tonic::Request;
+let service = AuthServiceImpl::default();
+let request = Request::new(SignupRequest {
+    username: "Tonic".to_string(),
+    password: "".to_string(),
+});
+let rt = tokio::runtime::Runtime::new();
+let response = rt.unwrap().block_on(service.signup(request)).unwrap();
+assert_eq!(response.into_inner().token, "Hello Tonic!".to_string());
+```"#]
+```
+3. Single Line /// comment Doc Test
+```rust
+///    Logout from the service
+///    ```
+///    use crate::auth_service::auth::auth_service_server::AuthService;
+///    use crate::auth_service::auth::{LogoutRequest, LogoutResponse};
+///    use crate::auth_service::auth_impl::AuthServiceImpl;
+///    use tonic::Request;
+///
+///    let service = AuthServiceImpl::default();
+///    let request = Request::new(LogoutRequest {
+///        token: "".to_string(),
+///    });
+///    let rt = tokio::runtime::Runtime::new();
+///    let response = rt.unwrap().block_on(service.logout(request)).unwrap();
+///    assert_eq!(response.into_inner().success, true);
+///    ```
+```
+
 ![Test](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/doc-test.png?raw=true)
 
 ## Advanced Features

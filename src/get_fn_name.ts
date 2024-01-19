@@ -10,7 +10,7 @@ function getTestFunctionName(document: vscode.TextDocument, position: vscode.Pos
     }
 
     // Case 2: On a test function declaration line
-    let fnMatch = lineText.match(/(async\s+)?fn\s+test_[\w]+/);
+    let fnMatch = lineText.match(/(async\s+)?fn\s+[\w]+/);
     if (fnMatch && fnMatch[0]) {
         return extractFunctionName(fnMatch[0]);
     }
@@ -37,7 +37,7 @@ function extractFunctionName(fnDeclaration: string): string | null {
 function getFunctionNameBelow(document: vscode.TextDocument, lineNum: number): string | null {
     for (let i = lineNum + 1; i < document.lineCount; i++) {
         let lineText = document.lineAt(i).text;
-        let match = lineText.match(/(async\s+)?fn\s+test_[\w]+/);
+        let match = lineText.match(/(async\s+)?fn\s+[\w]+/);
         if (match && match[0]) {
             return extractFunctionName(match[0]);
         }
@@ -48,7 +48,7 @@ function getFunctionNameBelow(document: vscode.TextDocument, lineNum: number): s
 function searchFunctionNameAbove(document: vscode.TextDocument, lineNum: number): string | null {
     for (let i = lineNum; i >= 0; i--) {
         let lineText = document.lineAt(i).text;
-        let match = lineText.match(/(async\s+)?fn\s+test_[\w]+/);
+        let match = lineText.match(/(async\s+)?fn\s+[\w]+/);
         if (match && match[0]) {
             return extractFunctionName(match[0]);
         }

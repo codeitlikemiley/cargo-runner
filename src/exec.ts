@@ -55,17 +55,10 @@ async function exec(): Promise<string | null> {
 
         const fileNameOrFilenameAndFnname = filename ? `${filename}::${fnName}` : fnName;
         if (crateType === 'bin') {
-            // example output we need to follow:
-            // cargo test --package multiplexer --bin multiplexer -- test_more --exact --nocapture
-            // if main.rs we dont need the filename only the function name 
             const binCommandPart = binName ? ` --bin ${binName}` : "";
             return `cargo ${testCommand} --package ${packageName}${binCommandPart} -- ${fileNameOrFilenameAndFnname} ${exactCaptureOption}`;
         }
         if (crateType === 'lib') {
-            // If no doc tests, run the regular test command
-            // example command: cargo test --package libra --lib -- example::test_example --exact --nocapture 
-            // we are missing the filenamehere  without .rs
-            // we need to get the filename and the function name
             return `cargo ${testCommand} --package ${packageName} --lib -- ${fileNameOrFilenameAndFnname} ${exactCaptureOption}`;
         }
         return null;

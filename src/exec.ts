@@ -12,6 +12,7 @@ import path from 'path';
 import handleDocAttribute from './handle_doc_attribute';
 import handleDocTest from './handle_doc_test';
 import handleMultilineDocTest from './handle_multiline_docs';
+import { getTestFunctionName } from './get_fn_name';
 
 async function exec(): Promise<string | null> {
     const editor = vscode.window.activeTextEditor;
@@ -44,18 +45,29 @@ async function exec(): Promise<string | null> {
         const isNextestInstalled = await isCargoNextestInstalled();
         const testCommand = isNextestInstalled ? 'nextest run' : 'test';
         const exactCaptureOption = isNextestInstalled ? '-- tests -- --nocapture' : '-- tests --nocapture';
-        cmd = await tests(filePath ?? '', packageName ?? '', binName ?? '') ?? null;
-        if (cmd !== null) {
-            return cmd;
+        const position = editor.selection.active;
+        const fnName = getTestFunctionName(editor.document, position);
+        console.log(`fn_name: ${fnName}`)
+        let filename = path.basename(filePath, '.rs');
+        if (filename === 'main' || filename === 'lib') {
+            filename = '';
         }
+
+        const fileNameOrFilenameAndFnname = filename ? `${filename}::${fnName}` : fnName;
         if (crateType === 'bin') {
-            return `cargo ${testCommand} --package ${packageName} --bin ${binName} ${exactCaptureOption}`;
+            // example output we need to follow:
+            // cargo test --package multiplexer --bin multiplexer -- test_more --exact --nocapture
+            // if main.rs we dont need the filename only the function name 
+            const binCommandPart = binName ? ` --bin ${binName}` : "";
+            return `cargo ${testCommand} --package ${packageName}${binCommandPart} -- ${fileNameOrFilenameAndFnname} ${exactCaptureOption}`;
         }
         if (crateType === 'lib') {
             // If no doc tests, run the regular test command
-            return `cargo ${testCommand} --package ${packageName} --lib ${exactCaptureOption}`;
+            // example command: cargo test --package libra --lib -- example::test_example --exact --nocapture 
+            // we are missing the filenamehere  without .rs
+            // we need to get the filename and the function name
+            return `cargo ${testCommand} --package ${packageName} --lib -- ${fileNameOrFilenameAndFnname} ${exactCaptureOption}`;
         }
-        console.log("Cannot run cargo tests for the current opened file");
         return null;
     }
 

@@ -2,25 +2,26 @@ import * as vscode from 'vscode';
 
 function getTestFunctionName(document: vscode.TextDocument, position: vscode.Position): string | null {
     let lineNum = position.line;
-    let lineText = document.lineAt(lineNum).text;
 
-    // Case 1: On a test macro line
-    if (/#\[(test|tokio::test)\]/.test(lineText)) {
-        return getFunctionNameBelow(document, lineNum);
+    // Search upwards for the nearest test macro or function declaration
+    while (lineNum >= 0) {
+        const lineText = document.lineAt(lineNum).text;
+
+        // Check for test macro and get function name below it
+        if (/#\[(test|tokio::test)\]/.test(lineText)) {
+            return getFunctionNameBelow(document, lineNum);
+        }
+
+        // Check for function declaration with test macro above
+        const fnMatch = lineText.match(/(async\s+)?fn\s+[\w]+/);
+        if (fnMatch && fnMatch[0] && hasTestMacroAbove(document, lineNum)) {
+            return extractFunctionName(fnMatch[0]);
+        }
+
+        lineNum--;
     }
 
-    // Case 2: On a test function declaration line
-    let fnMatch = lineText.match(/(async\s+)?fn\s+[\w]+/);
-    if (fnMatch && fnMatch[0]) {
-        return extractFunctionName(fnMatch[0]);
-    }
-
-    // Case 3: Inside or at the closing brace of a function block
-    if (lineText.includes('{') || lineText.includes('}') || insideFunctionBlock(document, lineNum)) {
-        return searchFunctionNameAbove(document, lineNum);
-    }
-
-    return null; // Outside of test function scope
+    return null; // No test function found or not in test context
 }
 
 function extractFunctionName(fnDeclaration: string): string | null {
@@ -36,8 +37,8 @@ function extractFunctionName(fnDeclaration: string): string | null {
 
 function getFunctionNameBelow(document: vscode.TextDocument, lineNum: number): string | null {
     for (let i = lineNum + 1; i < document.lineCount; i++) {
-        let lineText = document.lineAt(i).text;
-        let match = lineText.match(/(async\s+)?fn\s+[\w]+/);
+        const lineText = document.lineAt(i).text;
+        const match = lineText.match(/(async\s+)?fn\s+[\w]+/);
         if (match && match[0]) {
             return extractFunctionName(match[0]);
         }
@@ -45,26 +46,15 @@ function getFunctionNameBelow(document: vscode.TextDocument, lineNum: number): s
     return null;
 }
 
-function searchFunctionNameAbove(document: vscode.TextDocument, lineNum: number): string | null {
-    for (let i = lineNum; i >= 0; i--) {
-        let lineText = document.lineAt(i).text;
-        let match = lineText.match(/(async\s+)?fn\s+[\w]+/);
-        if (match && match[0]) {
-            return extractFunctionName(match[0]);
+function hasTestMacroAbove(document: vscode.TextDocument, lineNum: number): boolean {
+    for (let i = lineNum - 1; i >= 0; i--) {
+        const lineText = document.lineAt(i).text;
+        if (/#\[(test|tokio::test)\]/.test(lineText)) {
+            return true;
         }
-    }
-    return null;
-}
-
-function insideFunctionBlock(document: vscode.TextDocument, lineNum: number): boolean {
-    let braceCount = 0;
-    for (let i = lineNum; i >= 0; i--) {
-        let lineText = document.lineAt(i).text;
-        braceCount += (lineText.match(/{/g) || []).length;
-        braceCount -= (lineText.match(/}/g) || []).length;
-
-        if (braceCount > 0) {
-            return true; // Inside a function block
+        // Stop at the previous function declaration
+        if (/(async\s+)?fn\s+[\w]+/.test(lineText)) {
+            break;
         }
     }
     return false;

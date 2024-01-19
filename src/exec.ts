@@ -44,7 +44,7 @@ async function exec(): Promise<string | null> {
     if (isTestContext) {
         const isNextestInstalled = await isCargoNextestInstalled();
         const testCommand = isNextestInstalled ? 'nextest run' : 'test';
-        const exactCaptureOption = isNextestInstalled ? '-- tests -- --nocapture' : '-- tests --nocapture';
+        const exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
         const position = editor.selection.active;
         const fnName = getTestFunctionName(editor.document, position);
         console.log(`fn_name: ${fnName}`)

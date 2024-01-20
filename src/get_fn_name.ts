@@ -18,6 +18,10 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
         return false;
     }
 
+    function returnModuleNameOrNull(): string | null {
+        return isInsideModTests(currentLine) ? "tests" : null;
+    }
+
     function getFunctionNameWithOptionalModPrefix(line: number, functionName: string): string {
         return isInsideModTests(line) ? `tests::${functionName}` : functionName;
     }
@@ -44,7 +48,7 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
         for (let i = currentLine; i < document.lineCount; i++) {
             if (isTestMacro(i)) {
                 // Found a test macro before a closing brace
-                return null;
+                return returnModuleNameOrNull();
             }
             if (isClosingBrace(i)) {
                 closingBraceLine = i;
@@ -66,7 +70,7 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
             }
         }
 
-        return null; // Not inside a test function
+        return returnModuleNameOrNull();
     }
 
 
@@ -118,7 +122,7 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
             }
         } else {
             log('Cursor on closing brace, but not a test function, returning null');
-            return null;
+            return returnModuleNameOrNull();
         }
     }
 
@@ -129,5 +133,5 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
     }
 
     log("No test function found");
-    return null;
+    return returnModuleNameOrNull();
 }

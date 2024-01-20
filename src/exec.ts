@@ -45,10 +45,18 @@ async function exec(): Promise<string | null> {
     if (isTestContext) {
         const isNextestInstalled = await isCargoNextestInstalled();
         const testCommand = isNextestInstalled ? 'nextest run' : 'test';
-        const exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
+    
         const position = editor.selection.active;
         const fnName = getTestFunctionName(editor.document, position);
         console.log(`fn_name: ${fnName}`);
+    
+        let exactCaptureOption: string;
+        if (isNextestInstalled) {
+            exactCaptureOption = '-- --nocapture';
+        } else {
+            // Use --exact flag only if fnName is not 'tests::tests'
+            exactCaptureOption = fnName && fnName !== "tests::tests" ? '--exact --nocapture' : '--nocapture';
+        }
     
         let filename = path.basename(filePath, '.rs');
         if (filename === 'main' || filename === 'lib') {
@@ -66,9 +74,9 @@ async function exec(): Promise<string | null> {
             const inModTestsContext = isInsideModTests(editor.document, position.line);
             let testFnName = inModTestsContext && filename ? `${filename}::${fnName}` : fnName;
     
-            // Check if the function name is 'tests::tests' and replace it with 'tests'
-            if (testFnName === "tests::tests") {
-                testFnName = "tests";
+            // Replace 'tests::tests' with 'tests'
+            if (testFnName === "tests::tests" || testFnName === `${filename}::tests::tests`) {
+                testFnName = filename ? `${filename}::tests` : "tests";
             }
     
             command += ` -- ${testFnName} ${exactCaptureOption}`;
@@ -79,7 +87,7 @@ async function exec(): Promise<string | null> {
         return command;
     }
     
-
+    
 
 
     if (make && makefileValid) {

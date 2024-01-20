@@ -63,8 +63,14 @@ async function exec(): Promise<string | null> {
         }
     
         if (fnName) {
-            // If inside a 'mod tests' context, prepend filename
-            const testFnName = isInsideModTests(editor.document, position.line) && filename ? `${filename}::${fnName}` : fnName;
+            const inModTestsContext = isInsideModTests(editor.document, position.line);
+            let testFnName = inModTestsContext && filename ? `${filename}::${fnName}` : fnName;
+    
+            // Check if the function name is 'tests::tests' and replace it with 'tests'
+            if (testFnName === "tests::tests") {
+                testFnName = "tests";
+            }
+    
             command += ` -- ${testFnName} ${exactCaptureOption}`;
         } else {
             command += ` ${exactCaptureOption}`;

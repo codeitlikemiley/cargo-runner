@@ -3,6 +3,8 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.16
+- Add ability to make test on test not inside mod tests
 ## 1.1.5
 - Running Test now works as expected , covering all edge cases
 ## 1.1.4

@@ -3,6 +3,8 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.1.5
+- Running Test now works as expected , covering all edge cases
 ## 1.1.4
 - Remove -- tests on exactCaptureOption
 - remove prefix test_* on regex on getting fn name

@@ -12,7 +12,8 @@ import path from 'path';
 import handleDocAttribute from './handle_doc_attribute';
 import handleDocTest from './handle_doc_test';
 import handleMultilineDocTest from './handle_multiline_docs';
-import { getTestFunctionName } from './get_fn_name';
+import getTestFunctionName from './get_fn_name';
+import isInsideModTests from './is_inside_mod_test';
 
 async function exec(): Promise<string | null> {
     const editor = vscode.window.activeTextEditor;
@@ -47,22 +48,33 @@ async function exec(): Promise<string | null> {
         const exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
         const position = editor.selection.active;
         const fnName = getTestFunctionName(editor.document, position);
-        console.log(`fn_name: ${fnName}`)
+        console.log(`fn_name: ${fnName}`);
+    
         let filename = path.basename(filePath, '.rs');
         if (filename === 'main' || filename === 'lib') {
             filename = '';
         }
-
-        const fileNameOrFilenameAndFnname = filename ? `${filename}::${fnName}` : fnName;
-        if (crateType === 'bin') {
-            const binCommandPart = binName ? ` --bin ${binName}` : "";
-            return `cargo ${testCommand} --package ${packageName}${binCommandPart} -- ${fileNameOrFilenameAndFnname} ${exactCaptureOption}`;
+    
+        let command = `cargo ${testCommand} --package ${packageName}`;
+        if (crateType === 'bin' && binName) {
+            command += ` --bin ${binName}`;
+        } else if (crateType === 'lib') {
+            command += ` --lib`;
         }
-        if (crateType === 'lib') {
-            return `cargo ${testCommand} --package ${packageName} --lib -- ${fileNameOrFilenameAndFnname} ${exactCaptureOption}`;
+    
+        if (fnName) {
+            // If inside a 'mod tests' context, prepend filename
+            const testFnName = isInsideModTests(editor.document, position.line) && filename ? `${filename}::${fnName}` : fnName;
+            command += ` -- ${testFnName} ${exactCaptureOption}`;
+        } else {
+            command += ` ${exactCaptureOption}`;
         }
-        return null;
+    
+        return command;
     }
+    
+
+
 
     if (make && makefileValid) {
         const makefileDir = makefilePath ? path.dirname(vscode.Uri.parse(makefilePath).path) : '';

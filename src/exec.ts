@@ -50,13 +50,7 @@ async function exec(): Promise<string | null> {
         const fnName = getTestFunctionName(editor.document, position);
         console.log(`fn_name: ${fnName}`);
     
-        let exactCaptureOption: string;
-        if (isNextestInstalled) {
-            exactCaptureOption = '-- --nocapture';
-        } else {
-            // Use --exact flag only if fnName is not 'tests::tests'
-            exactCaptureOption = fnName && fnName !== "tests::tests" ? '--exact --nocapture' : '--nocapture';
-        }
+        let exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
     
         let filename = path.basename(filePath, '.rs');
         if (filename === 'main' || filename === 'lib') {
@@ -72,11 +66,19 @@ async function exec(): Promise<string | null> {
     
         if (fnName) {
             const inModTestsContext = isInsideModTests(editor.document, position.line);
-            let testFnName = inModTestsContext && filename ? `${filename}::${fnName}` : fnName;
+            let testFnName;
     
-            // Replace 'tests::tests' with 'tests'
-            if (testFnName === "tests::tests" || testFnName === `${filename}::tests::tests`) {
-                testFnName = filename ? `${filename}::tests` : "tests";
+            // Handling tests inside 'mod tests'
+            if (inModTestsContext) {
+                if (fnName === "tests" || fnName === "tests::tests") {
+                    testFnName = filename ? `${filename}::tests` : "tests";
+                    exactCaptureOption = '-- --nocapture'; // Run all tests in module
+                } else {
+                    testFnName = filename ? `${filename}::${fnName}` : fnName;
+                }
+            } else {
+                // Handling standalone tests
+                testFnName = fnName;
             }
     
             command += ` -- ${testFnName} ${exactCaptureOption}`;
@@ -86,6 +88,7 @@ async function exec(): Promise<string | null> {
     
         return command;
     }
+    
     
     
 

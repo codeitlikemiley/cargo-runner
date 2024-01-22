@@ -14,6 +14,8 @@ import handleDocTest from './handle_doc_test';
 import handleMultilineDocTest from './handle_multiline_docs';
 import getTestFunctionName from './get_fn_name';
 import isInsideModTests from './is_inside_mod_test';
+import getModulePath from './get_module_path';
+
 
 async function exec(): Promise<string | null> {
     const editor = vscode.window.activeTextEditor;
@@ -45,52 +47,63 @@ async function exec(): Promise<string | null> {
     if (isTestContext) {
         const isNextestInstalled = await isCargoNextestInstalled();
         const testCommand = isNextestInstalled ? 'nextest run' : 'test';
-    
+
         const position = editor.selection.active;
         const fnName = getTestFunctionName(editor.document, position);
         console.log(`fn_name: ${fnName}`);
-    
+
         let exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
-    
-        let filename = path.basename(filePath, '.rs');
-        if (filename === 'main' || filename === 'lib') {
-            filename = '';
+        
+        console.log('file path: ', filePath);
+        let modulePath = path.basename(filePath, '.rs');
+        if (modulePath === 'main' || modulePath === 'lib') {
+            modulePath = '';
+        } else {
+             modulePath = getModulePath(filePath, packageName!);
         }
-    
+
+        console.log(`modulepath: ${modulePath}`);
+
         let command = `cargo ${testCommand} --package ${packageName}`;
         if (crateType === 'bin' && binName) {
             command += ` --bin ${binName}`;
         } else if (crateType === 'lib') {
             command += ` --lib`;
         }
-    
+
         if (fnName) {
             const inModTestsContext = isInsideModTests(editor.document, position.line);
             let testFnName;
-    
+
+            console.log(`in_mod_tests_context: ${inModTestsContext}`);
+
             // Handling tests inside 'mod tests'
             if (inModTestsContext) {
                 if (fnName === "tests" || fnName === "tests::tests") {
-                    testFnName = filename ? `${filename}::tests` : "tests";
+                    testFnName = modulePath ? `${modulePath}::tests` : "tests";
                     exactCaptureOption = '-- --nocapture'; // Run all tests in module
+                    console.log('IF: fn name is: ${fnName}');
                 } else {
-                    testFnName = filename ? `${filename}::${fnName}` : fnName;
+                    testFnName = modulePath ? `${modulePath}::${fnName}` : fnName;
+                    console.log('ELSE: fn name is: ${testFnName}');
                 }
             } else {
                 // Handling standalone tests
-                testFnName = fnName;
+                console.log('handling standalone tests');
+                testFnName = modulePath ? `${modulePath}::${fnName}` : fnName;
             }
-    
+
             command += ` -- ${testFnName} ${exactCaptureOption}`;
         } else {
+            console.log('no fn name');
             command += ` ${exactCaptureOption}`;
         }
-    
+
         return command;
     }
-    
-    
-    
+
+
+
 
 
     if (make && makefileValid) {
@@ -129,4 +142,12 @@ async function exec(): Promise<string | null> {
     return null;
 }
 
+
+
+
+
+
+
 export default exec;
+
+

@@ -16,6 +16,11 @@ export default function getModulePath(filePath: string, packageName: string): st
         // Remove the file extension (.rs)
         const finalPath = formattedPath.replace('.rs', '');
 
+        // if our final path has ::mod on the end, remove it
+        if (finalPath.endsWith('::mod')) {
+            return finalPath.slice(0, -5);
+        }
+
         return finalPath;
     }
 

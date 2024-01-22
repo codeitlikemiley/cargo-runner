@@ -41,6 +41,7 @@ async function checkCrateType(filePath: string): Promise<string | null> {
     console.log(`Reading Cargo.toml from: ${cargoTomlPath}`);
     const cargoTomlContent = fs.readFileSync(cargoTomlPath, 'utf-8');
     const cargoTomlData = parse(cargoTomlContent) as CargoToml;
+    
     if (!cargoTomlData) {
         return null;
     }
@@ -64,18 +65,8 @@ async function checkCrateType(filePath: string): Promise<string | null> {
         return 'lib';
     }
 
-    // if we cannot find both [[bin]] and [[lib]]
-    // we need to check the for main.rs or lib.rs
-    // we need to check src/main.rs or src/lib.rs
-    const mainFile = path.join(parentDir, 'main.rs');
-    const libFile = path.join(parentDir, 'lib.rs');
-    if (fs.existsSync(mainFile)) {
-        return 'bin';
-    }
-    if (fs.existsSync(libFile)) {
-        return 'lib';
-    }
-    return null;
+    // if we cannot find both [[bin]] and [[lib]], find main.rs or lib.rs in the parent directory
+    return findMainOrLib(parentDir);
 }
 
 function isFilePartOfBinaryCrate(filePath: string, parentDir: string, bin: { name: string; path: string; }) {
@@ -97,4 +88,34 @@ function findCargoToml(filePath: string) {
     }
     return cargoTomlPath;
 }
+
+function findMainOrLib(parentDir: string): string | null {
+    // Find main.rs or lib.rs in the parent directory or its subdirectories
+    const mainFile = findFileInHierarchy(parentDir, 'main.rs');
+    const libFile = findFileInHierarchy(parentDir, 'lib.rs');
+
+    if (mainFile) {
+        return 'bin';
+    } else if (libFile) {
+        return 'lib';
+    } else {
+        return null;
+    }
+}
+
+function findFileInHierarchy(directory: string, fileName: string): string | null {
+    const filePath = path.join(directory, fileName);
+    if (fs.existsSync(filePath)) {
+        return filePath;
+    }
+
+    // Recursively check parent directories
+    const parentDir = path.dirname(directory);
+    if (parentDir !== directory) {
+        return findFileInHierarchy(parentDir, fileName);
+    }
+
+    return null;
+}
+
 export { checkCrateType };

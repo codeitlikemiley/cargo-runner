@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { getPackage } from './get_package';
+import { findCargoToml } from './find_cargo_toml';
 
 interface CargoToml {
     bin?: Array<{
@@ -12,27 +13,27 @@ interface CargoToml {
 }
 
 async function getBin(filePath: string): Promise<string | null> {
+    console.log('get_bin - Preparing to get bin name');
 
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
-    // file might be a binary if it has a main function
-    const mainFunctionRegex = /async\s+fn\s+main\s*\(\s*\)|fn\s+main\s*\(\s*\)/;
-    if (!mainFunctionRegex.test(fileContent)) {
-        console.log('No valid main function found in the file');
-        return null;
-    }
     // The main.rs file is always a binary
     if (filePath.endsWith('main.rs')) {
-        return getPackage(filePath);
+        console.log('get_bin - main.rs is always a binary');
+        if (await hasMainFunction(filePath)) {
+            return getPackage(filePath);
+        }
     }
 
     // Resolve the full path of the file
     const normalizedFilePath = path.resolve(filePath);
-    console.log(`Normalized file path: ${normalizedFilePath}`);
+    console.log(`get_bin - Normalized file path: ${normalizedFilePath}`);
 
     let currentDir = path.dirname(normalizedFilePath);
 
+    console.log(`get_bin - Current directory: ${currentDir}`);
+
     // If the file is in the bin directory, use the file name as the bin name
     if (path.basename(currentDir) === 'bin') {
+        console.log('get_bin - file is in bin directory , defaulting to file name as bin name');
         return path.basename(filePath, '.rs');
     }
 
@@ -41,44 +42,52 @@ async function getBin(filePath: string): Promise<string | null> {
     // If Our Special Case like main.rs and bin folder is not the case then we need to find the bin name from Cargo.toml
     // Find Cargo.toml by navigating up the directory tree
 
-    let cargoTomlPath = path.join(currentDir, 'Cargo.toml');
+    let cargoTomlPath = findCargoToml(filePath);
 
-    while (!fs.existsSync(cargoTomlPath)) {
-        if (currentDir === workspaceRoot) {
-            // Reached the workspace root and Cargo.toml is not found
-            console.log('Cargo.toml not found in the workspace root');
-            return null;
-        }
-
-        // Navigate up
-        currentDir = path.dirname(currentDir);
-        cargoTomlPath = path.join(currentDir, 'Cargo.toml');
-    }
-
-    // At this point, cargoTomlPath is the path to the found Cargo.toml file
-    // Read and parse Cargo.toml
-    console.log(`Reading Cargo.toml from: ${cargoTomlPath}`);
-    const cargoTomlContent = fs.readFileSync(cargoTomlPath, 'utf-8');
-    const parsedToml: CargoToml = parse(cargoTomlContent) as JsonMap;
-
-    if (!parsedToml.bin) {
-        console.log('No bin section found in Cargo.toml');
+    if (!cargoTomlPath) {
+        console.log('get_bin - Cargo.toml not found in the workspace root');
         return null;
     }
 
-    // Loop through each bin entry
-    for (const bin of parsedToml.bin) {
-        const binFilePath = path.resolve(currentDir, bin.path);
-        console.log(`Checking bin path: ${binFilePath}`);
+    console.log(`Reading Cargo.toml from: ${cargoTomlPath}`);
+    // At this point, cargoTomlPath is the path to the found Cargo.toml file
+    // Read and parse Cargo.toml
+    const cargoTomlContent = fs.readFileSync(cargoTomlPath, 'utf-8');
+    const cargoTomlData = parse(cargoTomlContent) as CargoToml;
 
-        if (binFilePath === normalizedFilePath) {
-            console.log(`Matching binary found: ${bin.name}`);
-            return bin.name;
+    if (!cargoTomlData || !cargoTomlData.bin) {
+        console.log('get_bin - No valid bin entry found in Cargo.toml');
+        return null;
+    }
+
+    if (cargoTomlData.bin !== undefined && cargoTomlData.bin.length > 0) {
+        for (const entry of cargoTomlData.bin) {
+            const entryPath = path.resolve(entry.path);
+            let entryDir = path.dirname(entryPath);
+
+            console.log(`get_bin - Checking if ${filePath} includes ${entryDir}`);
+
+            if (normalizedFilePath.includes(entryDir)) {
+                console.log(`get_bin - Found matching bin entry: ${entry.name}`);
+                return entry.name;
+            }
         }
     }
 
-    console.log('No matching bin entry found');
+    console.log('get_bin - No matching bin entry found');
     return null;
+}
+
+async function hasMainFunction(filePath: string): Promise<boolean> {
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    // console.log(`get_bin - File content: ${fileContent}`);
+    // file might be a binary if it has a main function
+    const mainFunctionRegex = /async\s+fn\s+main\s*\(\s*\)|fn\s+main\s*\(\s*\)/;
+    if (!mainFunctionRegex.test(fileContent)) {
+        console.log('get_bin - No valid main function found in the file');
+        return true;
+    }
+    return false;
 }
 
 export { getBin };

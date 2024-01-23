@@ -23,7 +23,8 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
     }
 
     function getFunctionNameWithOptionalModPrefix(line: number, functionName: string): string {
-        return isInsideModTests(line) ? `tests::${functionName}` : functionName;
+        // return isInsideModTests(line) ? `tests::${functionName}` : functionName;
+        return functionName;
     }
 
     function isClosingBrace(line: number): boolean {
@@ -88,7 +89,7 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
         const match = document.lineAt(functionNameLine).text.match(/(async\s+)?fn\s+(\w+)/);
         if (match) {
             log(`Function name found on line: 85: ${match[2]}`);
-            return getFunctionNameWithOptionalModPrefix(functionNameLine, match[2]);
+            return match[2];
         }
     }
 
@@ -118,7 +119,7 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
             const match = document.lineAt(testFunctionLine).text.match(/(async\s+)?fn\s+(\w+)/);
             if (match) {
                 log(`Function name found: ${match[2]}`);
-                return getFunctionNameWithOptionalModPrefix(testFunctionLine, match[2]);
+                return match[2];
             }
         } else {
             log('Cursor on closing brace, but not a test function, returning null');
@@ -129,7 +130,7 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
     // Handle cursor inside a function body
     const functionName = isInsideTestFunction();
     if (functionName) {
-        return getFunctionNameWithOptionalModPrefix(currentLine, functionName);
+        return  functionName;
     }
 
     log("No test function found");

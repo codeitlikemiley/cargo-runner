@@ -59,7 +59,7 @@ async function exec(): Promise<string | null> {
         if (modulePath === 'main' || modulePath === 'lib') {
             modulePath = '';
         } else {
-             modulePath = getModulePath(filePath, packageName!);
+             modulePath = getModulePath(filePath, packageName!, binName);
         }
 
         console.log(`modulepath: ${modulePath}`);

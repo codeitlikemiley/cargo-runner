@@ -4,16 +4,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { getPackage } from './get_package';
 import { findCargoToml } from './find_cargo_toml';
-
-interface CargoToml {
-    package?: {
-        name?: string;
-    };
-    bin?: Array<{
-        name: string;
-        path: string;
-    }>;
-}
+import CargoToml from './cargo_toml_type';
 
 async function getBin(filePath: string): Promise<string | null> {
    
@@ -59,7 +50,9 @@ async function getBin(filePath: string): Promise<string | null> {
             }
         }
     } 
+    // we should check the crateType before using binName
+    // if our crateType is lib then we dont need to use this package name as bin Name
     return cargo.package?.name || null;
 }
 
-export { getBin };
+export { getBin, CargoToml };

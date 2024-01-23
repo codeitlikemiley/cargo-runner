@@ -65,6 +65,8 @@ async function exec(): Promise<string | null> {
         console.log(`modulepath: ${modulePath}`);
 
         let command = `cargo ${testCommand} --package ${packageName}`;
+        const inModTestsContext = isInsideModTests(editor.document, position);
+
         if (crateType === 'bin' && binName) {
             command += ` --bin ${binName}`;
         } else if (crateType === 'lib') {
@@ -72,25 +74,14 @@ async function exec(): Promise<string | null> {
         }
 
         if (fnName) {
-            const inModTestsContext = isInsideModTests(editor.document, position.line);
-            let testFnName;
+            let testFnName = null;
 
-            console.log(`in_mod_tests_context: ${inModTestsContext}`);
-
-            // Handling tests inside 'mod tests'
             if (inModTestsContext) {
-                if (fnName === "tests" || fnName === "tests::tests") {
-                    testFnName = modulePath ? `${modulePath}::tests` : "tests";
-                    exactCaptureOption = '-- --nocapture'; // Run all tests in module
-                    console.log('IF: fn name is: ${fnName}');
-                } else {
-                    testFnName = modulePath ? `${modulePath}::${fnName}` : fnName;
-                    console.log('ELSE: fn name is: ${testFnName}');
-                }
+                    testFnName = modulePath ? `${modulePath}::tests::${fnName}` : `tests::${fnName}`;
+                    console.log(`testFnName generated inModTestsContext: ${testFnName}`);
             } else {
-                // Handling standalone tests
-                console.log('handling standalone tests');
                 testFnName = modulePath ? `${modulePath}::${fnName}` : fnName;
+                console.log(`testFnName generated standalone: ${testFnName}`);
             }
 
             command += ` -- ${testFnName} ${exactCaptureOption}`;

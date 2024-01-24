@@ -5,7 +5,6 @@ import { isFileInTestContext } from './is_file_in_test_context';
 import { checkCrateType } from './check_crate_type';
 import { getPackage } from './get_package';
 import { getBin } from './get_bin';
-import { tests } from './tests';
 import { isCargoNextestInstalled } from './is_cargo_nextest_install';
 import { isMakeAvailable } from './is_make_available';
 import path from 'path';
@@ -15,6 +14,7 @@ import handleMultilineDocTest from './handle_multiline_docs';
 import getTestFunctionName from './get_fn_name';
 import isInsideModTests from './is_inside_mod_test';
 import getModulePath from './get_module_path';
+import { log } from 'console';
 
 
 async function exec(): Promise<string | null> {
@@ -44,13 +44,21 @@ async function exec(): Promise<string | null> {
 
     let cmd: string | null;
 
+    const position = editor.selection.active;
+    const currentLineText = editor.document.lineAt(position.line).text;
+    // fix for isTestContext , avoid use to invoke command at this line
+    if (currentLineText.includes("#[cfg(test)]")) {
+        console.log('Current line contains #[cfg(test)], returning null.');
+        return null;
+    }
+
     if (isTestContext) {
         const isNextestInstalled = await isCargoNextestInstalled();
         const testCommand = isNextestInstalled ? 'nextest run' : 'test';
 
-        const position = editor.selection.active;
+        
         const fnName = getTestFunctionName(editor.document, position);
-        console.log(`fn_name: ${fnName}`);
+        log(`fn_name: ${fnName}`);
 
         let exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
 
@@ -62,7 +70,7 @@ async function exec(): Promise<string | null> {
             modulePath = getModulePath(filePath, packageName!, binName);
         }
 
-        console.log(`modulepath: ${modulePath}`);
+        log(`modulepath: ${modulePath}`);
 
         let command = `cargo ${testCommand} --package ${packageName}`;
         const inModTestsContext = isInsideModTests(editor.document, position);
@@ -78,15 +86,19 @@ async function exec(): Promise<string | null> {
 
             if (inModTestsContext) {
                 if (fnName === "tests" || fnName === "tests::tests") {
+                    log('running all test');
                     testFnName = modulePath ? `${modulePath}::tests` : "tests";
-                    exactCaptureOption = '-- --nocapture'; // Run all tests in module
+                    exactCaptureOption = '-- --nocapture';
                     console.log('IF: fn name is: ${fnName}');
                 } else {
+                    log('running specific test');
+                    exactCaptureOption = '--exact --nocapture';
                     testFnName = modulePath ? `${modulePath}::tests::${fnName}` : `tests::${fnName}`;
                     console.log(`testFnName generated inModTestsContext: ${testFnName}`);
 
                 }
             } else {
+                log('running specific test outside mod test');
                 testFnName = modulePath ? `${modulePath}::${fnName}` : fnName;
                 console.log(`testFnName generated standalone: ${testFnName}`);
             }
@@ -123,7 +135,6 @@ async function exec(): Promise<string | null> {
         return `cargo build -p ${packageName}`;
     }
     const document = editor.document;
-    const position = editor.selection.active;
     const docAttributeResult = await handleDocAttribute(document, position);
     const docTestResult = await handleDocTest(document, position);
     const multilineDocsResult = await handleMultilineDocTest(document, position);

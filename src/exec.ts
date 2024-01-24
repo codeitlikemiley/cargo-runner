@@ -53,13 +53,13 @@ async function exec(): Promise<string | null> {
         console.log(`fn_name: ${fnName}`);
 
         let exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
-        
+
         console.log('file path: ', filePath);
         let modulePath = path.basename(filePath, '.rs');
         if (modulePath === 'main' || modulePath === 'lib') {
             modulePath = '';
         } else {
-             modulePath = getModulePath(filePath, packageName!, binName);
+            modulePath = getModulePath(filePath, packageName!, binName);
         }
 
         console.log(`modulepath: ${modulePath}`);
@@ -77,8 +77,15 @@ async function exec(): Promise<string | null> {
             let testFnName = null;
 
             if (inModTestsContext) {
+                if (fnName === "tests" || fnName === "tests::tests") {
+                    testFnName = modulePath ? `${modulePath}::tests` : "tests";
+                    exactCaptureOption = '-- --nocapture'; // Run all tests in module
+                    console.log('IF: fn name is: ${fnName}');
+                } else {
                     testFnName = modulePath ? `${modulePath}::tests::${fnName}` : `tests::${fnName}`;
                     console.log(`testFnName generated inModTestsContext: ${testFnName}`);
+
+                }
             } else {
                 testFnName = modulePath ? `${modulePath}::${fnName}` : fnName;
                 console.log(`testFnName generated standalone: ${testFnName}`);

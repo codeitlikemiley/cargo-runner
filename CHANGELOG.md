@@ -3,6 +3,8 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.1.8
+- fix nextest commands
 ## 1.1.7
 - remove ability to run test at cursor on #[cfg(test)]
 - run all test inside mod test {} scope block

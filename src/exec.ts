@@ -60,7 +60,7 @@ async function exec(): Promise<string | null> {
         const fnName = getTestFunctionName(editor.document, position);
         log(`fn_name: ${fnName}`);
 
-        let exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
+        let exactCaptureOption;
 
         console.log('file path: ', filePath);
         let modulePath = path.basename(filePath, '.rs');
@@ -92,20 +92,23 @@ async function exec(): Promise<string | null> {
                     console.log('IF: fn name is: ${fnName}');
                 } else {
                     log('running specific test');
-                    exactCaptureOption = '--exact --nocapture';
+                    exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
                     testFnName = modulePath ? `${modulePath}::tests::${fnName}` : `tests::${fnName}`;
                     console.log(`testFnName generated inModTestsContext: ${testFnName}`);
 
                 }
             } else {
                 log('running specific test outside mod test');
+                exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
                 testFnName = modulePath ? `${modulePath}::${fnName}` : fnName;
+
                 console.log(`testFnName generated standalone: ${testFnName}`);
             }
 
             command += ` -- ${testFnName} ${exactCaptureOption}`;
         } else {
             console.log('no fn name');
+            exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
             command += ` ${exactCaptureOption}`;
         }
 

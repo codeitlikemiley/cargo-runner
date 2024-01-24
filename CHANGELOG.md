@@ -3,7 +3,15 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-## 1.16
+## 1.1.7
+- remove ability to run test at cursor on #[cfg(test)]
+- run all test inside mod test {} scope block
+- resolve module path correctly
+- Fix mising lib and bin args
+- resolve cratetype when we have many bin and 1 lib on same crate
+- add fix to run test on same file if you have mod test and individual test defined there
+- properly handle recursive modules when resolving module path
+## 1.1.6
 - Add ability to make test on test not inside mod tests
 ## 1.1.5
 - Running Test now works as expected , covering all edge cases

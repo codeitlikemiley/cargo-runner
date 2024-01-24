@@ -7,20 +7,8 @@ export default async function findCrateTypeFromModules(cargoTomlPath: string, fi
     const mainRsPath = path.join(cargoTomlDir, 'src', 'main.rs');
     const libRsPath = path.join(cargoTomlDir, 'src', 'lib.rs');
 
-    const hasMainRs = fs.existsSync(mainRsPath);
-    const hasLibRs = fs.existsSync(libRsPath);
-
-    if (!hasMainRs && !hasLibRs) {
-        console.error('Error: No [[bin]] or [[lib]] section found, and no main.rs or lib.rs file present.');
-        console.error('Please define at least one of [[bin]], [[lib]], main.rs, or lib.rs in Cargo.toml.');
-        return null;
-    }
-
-    const mainRsModules = hasMainRs ? await extractModuleNames(mainRsPath) : [];
-    const libRsModules = hasLibRs ? await extractModuleNames(libRsPath) : [];
-
-    const isBin = hasMainRs && mainRsModules.some(module => filePath.includes(module));
-    const isLib = hasLibRs && libRsModules.some(module => filePath.includes(module));
+    const isBin = fs.existsSync(mainRsPath) && (await extractModuleNames(mainRsPath)).some(module => filePath.includes(module));
+    const isLib = fs.existsSync(libRsPath) && (await extractModuleNames(libRsPath)).some(module => filePath.includes(module));
 
     if (isBin) {
         console.log('Found main.rs file with module declarations');

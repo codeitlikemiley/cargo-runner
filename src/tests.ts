@@ -1,5 +1,4 @@
 import { checkCrateType } from "./check_crate_type";
-import { getPackage } from "./get_package";
 import { getTestName } from "./get_test_name";
 import { isCargoNextestInstalled } from "./is_cargo_nextest_install";
 import { isFileInTestContext } from "./is_file_in_test_context";

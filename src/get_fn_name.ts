@@ -22,11 +22,6 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
         return isInsideModTests(currentLine) ? "tests" : null;
     }
 
-    function getFunctionNameWithOptionalModPrefix(line: number, functionName: string): string {
-        // return isInsideModTests(line) ? `tests::${functionName}` : functionName;
-        return functionName;
-    }
-
     function isClosingBrace(line: number): boolean {
         return document.lineAt(line).text.trim() === '}';
     }

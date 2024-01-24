@@ -55,4 +55,4 @@ async function getBin(filePath: string): Promise<string | null> {
     return cargo.package?.name || null;
 }
 
-export { getBin, CargoToml };
+export { getBin };

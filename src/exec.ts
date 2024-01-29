@@ -15,6 +15,8 @@ import getTestFunctionName from './get_fn_name';
 import isInsideModTests from './is_inside_mod_test';
 import getModulePath from './get_module_path';
 import { log } from 'console';
+import { getBenchmark } from './get_benchmark';
+import { findBenchmarkId } from './find_benchmark_id';
 
 
 async function exec(): Promise<string | null> {
@@ -51,12 +53,20 @@ async function exec(): Promise<string | null> {
         console.log('Current line contains #[cfg(test)], returning null.');
         return null;
     }
+    const get_benchmark = await getBenchmark(filePath);
+    if(get_benchmark){
+        let id = await findBenchmarkId();
+        if (id) {
+            return `cargo bench --package ${packageName} --bench ${get_benchmark} -- ${id}`;
+        }
+        return `cargo bench --package ${packageName} --bench ${get_benchmark}`;
+    }
+
 
     if (isTestContext) {
         const isNextestInstalled = await isCargoNextestInstalled();
         const testCommand = isNextestInstalled ? 'nextest run' : 'test';
 
-        
         const fnName = getTestFunctionName(editor.document, position);
         log(`fn_name: ${fnName}`);
 

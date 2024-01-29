@@ -33,7 +33,8 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
 
     function isTestMacro(line: number): boolean {
         const text = document.lineAt(line).text.trim();
-        return text.startsWith('#[test]') || text.startsWith('#[tokio::test]');
+        let pattern =  /#\[(\w+::)?test\]/g;
+        return pattern.test(text);
     }
 
 

@@ -27,7 +27,7 @@ async function getBenchmark(filePath: string): Promise<string | null> {
     let package_name = await getPackage(filePath);
     // do simple loop to check if the current file is a benchmark
     // if path is null we supply with getDefaultBenchmarkPath
-    if (cargo.bench?.length === 0) {
+    if (!cargo.bench) {
         console.log('No benches found in Cargo.toml');
         return null;
     }

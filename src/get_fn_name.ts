@@ -33,7 +33,7 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
 
     function isTestMacro(line: number): boolean {
         const text = document.lineAt(line).text.trim();
-        let pattern =  /#\[(\w+::)?test\]/g;
+        let pattern = /#\[(\w+::)?(test|bench)\]/g;
         return pattern.test(text);
     }
 

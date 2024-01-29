@@ -9,16 +9,18 @@ function isFileInTestContext(): boolean {
     const document = editor.document;
     const cursorLine = editor.selection.active.line;
 
+    let pattern = /#\[(cfg\(test\)|(\w+::)?test)\]/g;
+
     // Check if the file contains any of the test indicators
     const fileText = document.getText();
-    if (!fileText.includes("#[cfg(test)]") && !fileText.includes("#[test]") && !fileText.includes("#[actix_web::test]") && !fileText.includes("#[tokio::test]") && !fileText.match(/fn test_/)) {
+    if (pattern.test(fileText) === false) {
         return false;
     }
 
     // Check if we are inside the context of the `fn test_*()` function or `#[cfg(test)] mod tests {}` block
     for (let i = 0; i <= cursorLine; i++) {
         const lineText = document.lineAt(i).text;
-        if (lineText.includes("#[cfg(test)]") || lineText.includes("#[test]") || lineText.includes("#[actix_web::test]") || lineText.includes("#[tokio::test]") || lineText.match(/fn test_/)) {
+        if (pattern.test(lineText) === true) {
             if (i === cursorLine) {
                 return true;
             }

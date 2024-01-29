@@ -3,6 +3,12 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.1.9
+- [Future proof all kinds of test macro](https://github.com/codeitlikemiley/cargo-runner/pull/6)
+- [Add ability to run single file rust script](https://github.com/codeitlikemiley/cargo-runner/pull/7)
+- [Add criterion benchmark](https://github.com/codeitlikemiley/cargo-runner/pull/9)
+- [On nightly rust add ability to run bench test](https://github.com/codeitlikemiley/cargo-runner/pull/10)
+
 ## 1.1.8
 - fix nextest commands
 ## 1.1.7

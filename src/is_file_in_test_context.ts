@@ -11,14 +11,14 @@ function isFileInTestContext(): boolean {
 
     // Check if the file contains any of the test indicators
     const fileText = document.getText();
-    if (!fileText.includes("#[cfg(test)]") && !fileText.includes("#[test]") && !fileText.includes("#[tokio::test]") && !fileText.match(/fn test_/)) {
+    if (!fileText.includes("#[cfg(test)]") && !fileText.includes("#[test]") && !fileText.includes("#[actix_web::test]") && !fileText.includes("#[tokio::test]") && !fileText.match(/fn test_/)) {
         return false;
     }
 
     // Check if we are inside the context of the `fn test_*()` function or `#[cfg(test)] mod tests {}` block
     for (let i = 0; i <= cursorLine; i++) {
         const lineText = document.lineAt(i).text;
-        if (lineText.includes("#[cfg(test)]") || lineText.includes("#[test]") || lineText.includes("#[tokio::test]") || lineText.match(/fn test_/)) {
+        if (lineText.includes("#[cfg(test)]") || lineText.includes("#[test]") || lineText.includes("#[actix_web::test]") || lineText.includes("#[tokio::test]") || lineText.match(/fn test_/)) {
             if (i === cursorLine) {
                 return true;
             }

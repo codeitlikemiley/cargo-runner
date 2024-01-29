@@ -33,7 +33,7 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
 
     function isTestMacro(line: number): boolean {
         const text = document.lineAt(line).text.trim();
-        return text.startsWith('#[test]') || text.startsWith('#[tokio::test]');
+        return text.startsWith('#[test]') || text.startsWith('#[tokio::test]') || text.startsWith('#[actix_web::test]');
     }
 
 

@@ -3,6 +3,11 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.1.9
+- Ability to override arguments with CMD+SHIFT+R
+- Add ability to remove override arguments by entering an empty string
+- Pressing CMD+R would add the override arguments
+- an artifact is created when adding arguments , a file called `.cargo_runner.toml`
 ## 1.1.8
 - fix nextest commands
 ## 1.1.7

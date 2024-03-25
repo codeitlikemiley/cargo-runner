@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/codeitlikemiley/cargo-runner"
   },
-"version": "1.1.8",
+  "version": "1.1.9",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -22,6 +22,10 @@
       {
         "command": "cargo-runner.exec",
         "title": "Cargo Runner"
+      },
+      {
+        "command": "cargo-runner.addArgs",
+        "title": "Add Cargo Runner Args"
       }
     ],
     "keybindings": [
@@ -30,6 +34,12 @@
         "key": "ctrl+r",
         "mac": "cmd+r",
         "when": "resourceFilename =~ /\\.(rs)$/ && editorTextFocus && editorLangId == rust && editorHasDefinitionProvider"
+      },
+      {
+        "command": "cargo-runner.addArgs",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r",
+        "when": "editorTextFocus && editorLangId == rust"
       }
     ]
   },

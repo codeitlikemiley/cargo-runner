@@ -17,7 +17,9 @@ import getModulePath from './get_module_path';
 import { log } from 'console';
 import { getBenchmark } from './get_benchmark';
 import { findBenchmarkId } from './find_benchmark_id';
-
+import findCargoRunnerArgsToml from './get_cargo_runner_args_config';
+import getArgs from './get_args';
+import buildArgs from './build_args';
 
 async function exec(): Promise<string | null> {
     const editor = vscode.window.activeTextEditor;
@@ -28,12 +30,14 @@ async function exec(): Promise<string | null> {
 
     const filePath = editor.document.uri.fsPath;
     const makefilePath = await getMakefile(filePath);
+    const cargoRunnerArgsConfig = await findCargoRunnerArgsToml(filePath);
     const makefileValid = makefilePath ? isMakefileValid(makefilePath) : false;
     const isTestContext = await isFileInTestContext();
     const crateType = await checkCrateType(filePath);
     const packageName = await getPackage(filePath);
     const binName = await getBin(filePath);
     const make = await isMakeAvailable();
+    const cargo_runner_args =  await getArgs(cargoRunnerArgsConfig);
 
     console.log(`----------------------------------------------------------`);
     console.log(`makefile_path: ${makefilePath || "nil"}`);
@@ -42,9 +46,12 @@ async function exec(): Promise<string | null> {
     console.log(`crate_type: ${crateType || "nil"}`);
     console.log(`package_name: ${packageName || "nil"}`);
     console.log(`bin_name: ${binName || "nil"}`);
+    console.log(`cargo runner args: ${cargo_runner_args || "nil"}`);
+    
     console.log(`----------------------------------------------------------`);
 
     let cmd: string | null;
+    let additionalArgs: string | null = null;
 
     const position = editor.selection.active;
     const currentLineText = editor.document.lineAt(position.line).text;
@@ -56,10 +63,13 @@ async function exec(): Promise<string | null> {
     const get_benchmark = await getBenchmark(filePath);
     if(get_benchmark){
         let id = await findBenchmarkId();
-        if (id) {
-            return `cargo bench --package ${packageName} --bench ${get_benchmark} -- ${id}`;
+        if (cargo_runner_args?.bench) {
+            additionalArgs =  buildArgs(cargo_runner_args?.bench);
         }
-        return `cargo bench --package ${packageName} --bench ${get_benchmark}`;
+        if (id) {
+            return `cargo bench --package ${packageName} --bench ${get_benchmark} -- ${id} ${additionalArgs}`;
+        }
+        return `cargo bench --package ${packageName} --bench ${get_benchmark} ${additionalArgs ? ` -- ${additionalArgs}` : ''}`;
     }
 
 
@@ -121,13 +131,11 @@ async function exec(): Promise<string | null> {
             exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
             command += ` ${exactCaptureOption}`;
         }
-
-        return command;
+        if (cargo_runner_args?.test) {
+                additionalArgs =  buildArgs(cargo_runner_args?.test);
+        }
+        return command + (additionalArgs ? ` -- ${additionalArgs}` : '');
     }
-
-
-
-
 
     if (make && makefileValid) {
         const makefileDir = makefilePath ? path.dirname(vscode.Uri.parse(makefilePath).path) : '';
@@ -142,23 +150,32 @@ async function exec(): Promise<string | null> {
     }
 
     if (crateType === "bin") {
-        return `cargo run -p ${packageName}${binName ? ` --bin ${binName}` : ""}`;
+        if (cargo_runner_args?.run) {
+            additionalArgs =  buildArgs(cargo_runner_args?.run);
+        }
+        return `cargo run -p ${packageName}${binName ? ` --bin ${binName}` : ""}${additionalArgs ? ` -- ${additionalArgs}` : ""}`;
     }
     if (crateType === "build") {
-        return `cargo build -p ${packageName}`;
+        if (cargo_runner_args?.build) {
+            additionalArgs =  buildArgs(cargo_runner_args?.build);
+        }
+        return `cargo build -p ${packageName}${additionalArgs ? ` -- ${additionalArgs}` : ""}`;
     }
     const document = editor.document;
     const docAttributeResult = await handleDocAttribute(document, position);
     const docTestResult = await handleDocTest(document, position);
     const multilineDocsResult = await handleMultilineDocTest(document, position);
     // If any doc test function returns a valid function name, run the doc test
+    if (cargo_runner_args?.doctest){
+        additionalArgs =  buildArgs(cargo_runner_args?.doctest);
+    }
     if (docAttributeResult?.isValid && docAttributeResult.fnName) {
         // follow this format cargo test --doc --package auth_service -- login
-        return `cargo test --doc --package ${packageName} -- ${docAttributeResult.fnName}`;
+        return `cargo test --doc --package ${packageName} -- ${docAttributeResult.fnName}${additionalArgs ? ` -- ${additionalArgs}` : ""}`;
     } else if (docTestResult.isValid && docTestResult.fnName) {
-        return `cargo test --doc --package ${packageName} -- ${docTestResult.fnName}`;
+        return `cargo test --doc --package ${packageName} -- ${docTestResult.fnName}${additionalArgs ? ` -- ${additionalArgs}` : ""}`;
     } else if (multilineDocsResult.isValid && multilineDocsResult.fnName) {
-        return `cargo test --doc --package ${packageName} -- ${multilineDocsResult.fnName}`;
+        return `cargo test --doc --package ${packageName} -- ${multilineDocsResult.fnName}${additionalArgs ? ` -- ${additionalArgs}` : ""}`;
     }
     console.log("Cannot run cargo commands for current opened file.");
     return null;

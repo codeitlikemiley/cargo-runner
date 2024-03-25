@@ -16,7 +16,39 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
 - **Real-Time Feedback**: Immediate visual feedback on the status of build and test processes, helping you identify and fix issues more quickly.
 - **Customizable Environment**: Tailor Cargo Runner to your workflow with customizable settings and keybindings.
 
+- **Override Arguments** : Quickly Override Command Arguments on different context such as: `run` , `build`, `test`, `doctest` and `bench` 
+
 ## Demo Screenshot
+
+### Override Arguments
+
+> Adding Arguments
+1. Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd>
+2. Choose context from any of the following options:
+    - run
+    - build
+    - test
+    - doctest
+    - bench
+3. Type those parameters you wanna add to override the default 
+e.g. 
+
+```sh
+--jobs 5 --all-features
+```
+> Removing Arguments
+1. Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd>
+
+2. Choose context from any of the following options:
+    - run
+    - build
+    - test
+    - doctest
+    - bench
+3. Press Enter (dont type anything)
+
+This would remove the parameters `--jobs 5 --all-features` on .`cargo_runner.toml` file
+
 
 ### Cargo Run 
 

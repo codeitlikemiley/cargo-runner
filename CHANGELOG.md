@@ -3,6 +3,9 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.3.0
+- [Fix issue on override](https://github.com/codeitlikemiley/cargo-runner/issues/12)
+- Add Support for Integration Test under tests folder 
 ## 1.2.0
 - Ability to override arguments with CMD+SHIFT+R
 - Add ability to remove override arguments by entering an empty string

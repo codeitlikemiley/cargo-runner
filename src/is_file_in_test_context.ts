@@ -9,7 +9,7 @@ function isFileInTestContext(): boolean {
     const document = editor.document;
     const cursorLine = editor.selection.active.line;
 
-    let pattern = /#\[(cfg\(test\)|(\w+::)?test)\]/g;
+    let pattern = /#\[(cfg\(test\)|(\w+::)?test|\w+_test)\]/g;
 
     // Check if the file contains any of the test indicators
     const fileText = document.getText();

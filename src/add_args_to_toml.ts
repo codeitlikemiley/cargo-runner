@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as toml from '@iarna/toml';
 
-export default async function addArgsToToml(args: Array<{name: string, type: "int" | "boolean" | "string", value: any}>, context: string) {
+export default async function addArgsToToml(field: string, context: string) {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
         vscode.window.showErrorMessage('No active editor found.');
@@ -20,13 +20,13 @@ export default async function addArgsToToml(args: Array<{name: string, type: "in
         config = {};
     }
 
-    if (args.length === 0) {
+    if (field.length === 0) {
         // If no arguments are provided, remove the selected context from the TOML
         delete config[context];
         vscode.window.showInformationMessage(`Context '${context}' removed from .cargo_runner.toml.`);
     } else {
         // Replace existing args for the context with the new ones
-        config[context] = args;
+        config[context] = field;
         vscode.window.showInformationMessage(`Arguments for context '${context}' updated in .cargo_runner.toml.`);
     }
 

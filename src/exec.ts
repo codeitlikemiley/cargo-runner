@@ -19,7 +19,7 @@ import { getBenchmark } from './get_benchmark';
 import { findBenchmarkId } from './find_benchmark_id';
 import findCargoRunnerArgsToml from './get_cargo_runner_args_config';
 import getArgs from './get_args';
-import buildArgs from './build_args';
+import { isIntegrationTest } from './is_integration_test';
 
 async function exec(): Promise<string | null> {
     const editor = vscode.window.activeTextEditor;
@@ -37,7 +37,7 @@ async function exec(): Promise<string | null> {
     const packageName = await getPackage(filePath);
     const binName = await getBin(filePath);
     const make = await isMakeAvailable();
-    const cargo_runner_args =  await getArgs(cargoRunnerArgsConfig);
+    const cargo_runner_args = await getArgs(cargoRunnerArgsConfig);
 
     console.log(`----------------------------------------------------------`);
     console.log(`makefile_path: ${makefilePath || "nil"}`);
@@ -47,7 +47,7 @@ async function exec(): Promise<string | null> {
     console.log(`package_name: ${packageName || "nil"}`);
     console.log(`bin_name: ${binName || "nil"}`);
     console.log(`cargo runner args: ${cargo_runner_args || "nil"}`);
-    
+
     console.log(`----------------------------------------------------------`);
 
     let cmd: string | null;
@@ -61,17 +61,32 @@ async function exec(): Promise<string | null> {
         return null;
     }
     const get_benchmark = await getBenchmark(filePath);
-    if(get_benchmark){
+    if (get_benchmark) {
         let id = await findBenchmarkId();
         if (cargo_runner_args?.bench) {
-            additionalArgs =  buildArgs(cargo_runner_args?.bench);
+            additionalArgs = cargo_runner_args?.bench;
         }
         if (id) {
             return `cargo bench --package ${packageName} --bench ${get_benchmark} -- ${id} ${additionalArgs}`;
         }
-        return `cargo bench --package ${packageName} --bench ${get_benchmark} ${additionalArgs ? ` -- ${additionalArgs}` : ''}`;
+        return `cargo bench --package ${packageName} --bench ${get_benchmark}${additionalArgs ? ` ${additionalArgs}` : ''}`;
     }
 
+    if (isIntegrationTest(filePath)) {
+        if (cargo_runner_args?.test) {
+            additionalArgs = cargo_runner_args?.test;
+        }
+        const isNextestInstalled = await isCargoNextestInstalled();
+        const testCommand = isNextestInstalled ? 'nextest run' : 'test';
+        const integrationTestName = path.basename(filePath, '.rs');
+        const fnName = getTestFunctionName(editor.document, position);
+        const inModTestsContext = isInsideModTests(editor.document, position);
+        if (inModTestsContext) {
+            return `cargo ${testCommand} --package ${packageName} --test ${integrationTestName} -- tests::${fnName}${additionalArgs ? ` ${additionalArgs}` : ''}`;
+        } else {
+            return `cargo ${testCommand} --package ${packageName} --test ${integrationTestName} -- ${fnName}${additionalArgs ? ` ${additionalArgs}` : ''}`;
+        }
+    }
 
     if (isTestContext) {
         const isNextestInstalled = await isCargoNextestInstalled();
@@ -80,7 +95,6 @@ async function exec(): Promise<string | null> {
         const fnName = getTestFunctionName(editor.document, position);
         log(`fn_name: ${fnName}`);
 
-        let exactCaptureOption;
 
         console.log('file path: ', filePath);
         let modulePath = path.basename(filePath, '.rs');
@@ -108,33 +122,26 @@ async function exec(): Promise<string | null> {
                 if (fnName === "tests" || fnName === "tests::tests") {
                     log('running all test');
                     testFnName = modulePath ? `${modulePath}::tests` : "tests";
-                    exactCaptureOption = '-- --nocapture';
                     console.log('IF: fn name is: ${fnName}');
                 } else {
                     log('running specific test');
-                    exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
                     testFnName = modulePath ? `${modulePath}::tests::${fnName}` : `tests::${fnName}`;
                     console.log(`testFnName generated inModTestsContext: ${testFnName}`);
 
                 }
             } else {
                 log('running specific test outside mod test');
-                exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
                 testFnName = modulePath ? `${modulePath}::${fnName}` : fnName;
 
                 console.log(`testFnName generated standalone: ${testFnName}`);
             }
 
-            command += ` -- ${testFnName} ${exactCaptureOption}`;
-        } else {
-            console.log('no fn name');
-            exactCaptureOption = isNextestInstalled ? '-- --nocapture' : '--exact --nocapture';
-            command += ` ${exactCaptureOption}`;
+            command += ` -- ${testFnName}`;
         }
         if (cargo_runner_args?.test) {
-                additionalArgs =  buildArgs(cargo_runner_args?.test);
+            additionalArgs = cargo_runner_args?.test;
         }
-        return command + (additionalArgs ? ` -- ${additionalArgs}` : '');
+        return command + (additionalArgs ? ` ${additionalArgs}` : '');
     }
 
     if (make && makefileValid) {
@@ -151,42 +158,34 @@ async function exec(): Promise<string | null> {
 
     if (crateType === "bin") {
         if (cargo_runner_args?.run) {
-            additionalArgs =  buildArgs(cargo_runner_args?.run);
+            additionalArgs = cargo_runner_args?.run;
         }
-        return `cargo run -p ${packageName}${binName ? ` --bin ${binName}` : ""}${additionalArgs ? ` -- ${additionalArgs}` : ""}`;
+        return `cargo run -p ${packageName}${binName ? ` --bin ${binName}` : ""}${additionalArgs ? ` ${additionalArgs}` : ""}`;
     }
     if (crateType === "build") {
         if (cargo_runner_args?.build) {
-            additionalArgs =  buildArgs(cargo_runner_args?.build);
+            additionalArgs = cargo_runner_args?.build;
         }
-        return `cargo build -p ${packageName}${additionalArgs ? ` -- ${additionalArgs}` : ""}`;
+        return `cargo build -p ${packageName}${additionalArgs ? ` ${additionalArgs}` : ""}`;
     }
     const document = editor.document;
     const docAttributeResult = await handleDocAttribute(document, position);
     const docTestResult = await handleDocTest(document, position);
     const multilineDocsResult = await handleMultilineDocTest(document, position);
     // If any doc test function returns a valid function name, run the doc test
-    if (cargo_runner_args?.doctest){
-        additionalArgs =  buildArgs(cargo_runner_args?.doctest);
+    if (cargo_runner_args?.doctest) {
+        additionalArgs = cargo_runner_args?.doctest;
     }
     if (docAttributeResult?.isValid && docAttributeResult.fnName) {
         // follow this format cargo test --doc --package auth_service -- login
-        return `cargo test --doc --package ${packageName} -- ${docAttributeResult.fnName}${additionalArgs ? ` -- ${additionalArgs}` : ""}`;
+        return `cargo test --doc --package ${packageName} -- ${docAttributeResult.fnName}${additionalArgs ? ` ${additionalArgs}` : ""}`;
     } else if (docTestResult.isValid && docTestResult.fnName) {
-        return `cargo test --doc --package ${packageName} -- ${docTestResult.fnName}${additionalArgs ? ` -- ${additionalArgs}` : ""}`;
+        return `cargo test --doc --package ${packageName} -- ${docTestResult.fnName}${additionalArgs ? ` ${additionalArgs}` : ""}`;
     } else if (multilineDocsResult.isValid && multilineDocsResult.fnName) {
-        return `cargo test --doc --package ${packageName} -- ${multilineDocsResult.fnName}${additionalArgs ? ` -- ${additionalArgs}` : ""}`;
+        return `cargo test --doc --package ${packageName} -- ${multilineDocsResult.fnName}${additionalArgs ? ` ${additionalArgs}` : ""}`;
     }
     console.log("Cannot run cargo commands for current opened file.");
     return null;
 }
 
-
-
-
-
-
-
 export default exec;
-
-

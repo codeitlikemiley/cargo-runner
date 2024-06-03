@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import exec from './exec';
 import { isRustScript, runRustScript } from './rust_file_script';
 import parseUserInput from './parseUserInput';
 import addArgsToToml from './add_args_to_toml';
+import exec from './exec';
 
 export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('cargo-runner.exec', async () => {
@@ -67,13 +67,11 @@ export function activate(context: vscode.ExtensionContext) {
 
         if (!userInput || userInput.trim() === "" || userInput === undefined || userInput === null){
 			// we should delete the whole context if no args are provided
-			await addArgsToToml([], context);
-        }
-		
-
-        // Parse the input and add arguments to TOML
-        const argsToAdd = parseUserInput(userInput!);
-		await addArgsToToml(argsToAdd, context);
+			await addArgsToToml("", context);
+        }else {
+			// fill the context with the input
+			await addArgsToToml(userInput, context);
+		}
 		
     }));
 }

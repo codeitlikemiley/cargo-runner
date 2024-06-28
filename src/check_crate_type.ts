@@ -12,11 +12,17 @@ async function checkCrateType(filePath: string): Promise<string | null> {
 
     let isOnBinDir = (path.basename(parentDir) === 'bin' && mainFunctionRegex.test(fileContent));
     let isOnMainRs = (path.basename(filePath) === 'main.rs' && mainFunctionRegex.test(fileContent));
+    let isOnBuildRs = (path.basename(filePath) === 'build.rs' && mainFunctionRegex.test(fileContent));
     let isOnLibRs = path.basename(filePath) === 'lib.rs';
 
     if (isOnLibRs) {
         log('Library crate defined on lib.rs');
         return 'lib';
+    }
+
+    if (isOnBuildRs) {
+        log('Build script crate defined on build.rs');
+        return 'build';
     }
 
     if (isOnBinDir || isOnMainRs) {

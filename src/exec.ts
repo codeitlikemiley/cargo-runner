@@ -20,6 +20,7 @@ import findCargoRunnerArgsToml from './get_cargo_runner_args_config';
 import getArgs from './get_args';
 import { isIntegrationTest } from './is_integration_test';
 import { findModuleName, getProjectModules } from './get_module_path';
+import { isInsideExamples } from './is_inside_examples';
 
 async function exec(): Promise<string | null> {
     const editor = vscode.window.activeTextEditor;
@@ -32,17 +33,18 @@ async function exec(): Promise<string | null> {
     const makefilePath = await getMakefile(filePath);
     const cargoRunnerArgsConfig = await findCargoRunnerArgsToml(filePath);
     const makefileValid = makefilePath ? isMakefileValid(makefilePath) : false;
-    const isTestContext = await isFileInTestContext();
+    const inTestContext = await isFileInTestContext();
     const crateType = await checkCrateType(filePath);
     const packageName = await getPackage(filePath);
     const binName = await getBin(filePath);
     const make = await isMakeAvailable();
     const cargo_runner_args = await getArgs(cargoRunnerArgsConfig);
+    const prefix_env = cargo_runner_args?.env ? `${cargo_runner_args.env} ` : '';
 
     console.log(`----------------------------------------------------------`);
     console.log(`makefile_path: ${makefilePath || "nil"}`);
     console.log(`makefile_valid: ${makefileValid}`);
-    console.log(`is_test_context: ${isTestContext}`);
+    console.log(`is_test_context: ${inTestContext}`);
     console.log(`crate_type: ${crateType || "nil"}`);
     console.log(`package_name: ${packageName || "nil"}`);
     console.log(`bin_name: ${binName || "nil"}`);
@@ -61,15 +63,16 @@ async function exec(): Promise<string | null> {
         return null;
     }
     const get_benchmark = await getBenchmark(filePath);
+
     if (get_benchmark) {
         let id = await findBenchmarkId();
         if (cargo_runner_args?.bench) {
             additionalArgs = cargo_runner_args?.bench;
         }
         if (id) {
-            return `cargo bench --package ${packageName} --bench ${get_benchmark} -- ${id} ${additionalArgs}`;
+            return `${prefix_env}cargo bench --package ${packageName} --bench ${get_benchmark} -- ${id} ${additionalArgs}`;
         }
-        return `cargo bench --package ${packageName} --bench ${get_benchmark}${additionalArgs ? ` ${additionalArgs}` : ''}`;
+        return `${prefix_env}cargo bench --package ${packageName} --bench ${get_benchmark}${additionalArgs ? ` ${additionalArgs}` : ''}`;
     }
 
     if (isIntegrationTest(filePath)) {
@@ -82,46 +85,72 @@ async function exec(): Promise<string | null> {
         const fnName = getTestFunctionName(editor.document, position);
         const inModTestsContext = isInsideModTests(editor.document, position);
         if (inModTestsContext) {
-            return `cargo ${testCommand} --package ${packageName} --test ${integrationTestName} -- tests::${fnName}${additionalArgs ? ` ${additionalArgs}` : ''}`;
+            return `${prefix_env}cargo ${testCommand} --package ${packageName} --test ${integrationTestName} -- tests::${fnName}${additionalArgs ? ` ${additionalArgs}` : ''}`;
         } else {
-            return `cargo ${testCommand} --package ${packageName} --test ${integrationTestName} -- ${fnName}${additionalArgs ? ` ${additionalArgs}` : ''}`;
+            return `${prefix_env}cargo ${testCommand} --package ${packageName} --test ${integrationTestName} -- ${fnName}${additionalArgs ? ` ${additionalArgs}` : ''}`;
         }
     }
 
-    if (isTestContext) {
-        const isNextestInstalled = await isCargoNextestInstalled();
-        const testCommand = isNextestInstalled ? 'nextest run' : 'test';
+    if (isInsideExamples(filePath) && !inTestContext) {
+        let exampleArgs = `--example ${path.basename(filePath, '.rs')}`;
+        if (cargo_runner_args?.run) {
+            additionalArgs = cargo_runner_args?.run;
+        }
+        
+        return `${prefix_env}cargo run ${exampleArgs} ${additionalArgs ? ` ${additionalArgs}` : ''}`;
+    }
 
-        const fnName = getTestFunctionName(editor.document, position);
-        log(`fn_name: ${fnName}`);
+    if (inTestContext) {
+
+        const isNextestInstalled = await isCargoNextestInstalled();
 
         const inModTestsContext = isInsideModTests(editor.document, position);
 
-        console.log('file path: ', filePath);
-
         const modules = getProjectModules(filePath);
 
-        const modulePath = findModuleName(filePath, modules , inModTestsContext) || '';
+        let modulePath = findModuleName(filePath, modules, inModTestsContext) || '';
 
-        log(`modulepath: ${modulePath}`);
+        const fnName = getTestFunctionName(editor.document, position);
 
-        let command = `cargo ${testCommand} --package ${packageName}`;
+        let testfnName = '';
+        if (fnName) {
+            testfnName = modulePath ? `${modulePath}::${fnName}` : fnName;
+        }
+
+        let testCrateType = '';
 
         if (crateType === 'bin' && binName) {
-            command += ` --bin ${binName}`;
+            testCrateType = `--bin ${binName}`;
         } else if (crateType === 'lib') {
-            command += ` --lib`;
+            testCrateType = `--lib`;
         }
 
-        if (fnName) {
-            const testFnName = modulePath ? `${modulePath}::${fnName}` : fnName;
-
-            command += ` -- ${testFnName}`;
+        let exampleArgs = '';
+        if (path.basename(path.dirname(filePath)) === 'examples') {
+            exampleArgs = `--example ${path.basename(filePath, '.rs')}`;
         }
+
         if (cargo_runner_args?.test) {
             additionalArgs = cargo_runner_args?.test;
         }
-        return command + (additionalArgs ? ` ${additionalArgs}` : ' --exact --nocapture');
+        let default_args = isNextestInstalled ? "--nocapture" : "--exact --nocapture --show-output";
+
+        if (!additionalArgs) {
+            additionalArgs = default_args;
+        }
+
+        if (isNextestInstalled) {
+            if (exampleArgs) {
+                return `${prefix_env}cargo nextest run ${exampleArgs} -E 'test(/${testfnName}$/)' -p ${packageName} ${testCrateType} ${additionalArgs}`;
+            }
+            return `${prefix_env}cargo nextest run -E 'test(/${testfnName}$/)' -p ${packageName} ${testCrateType} ${additionalArgs}`;
+        } else {
+            if (exampleArgs) {
+                return `${prefix_env}cargo test --package ${packageName} ${exampleArgs} -- ${testfnName} ${additionalArgs}`;
+            }
+
+            return `${prefix_env}cargo test --package ${packageName} ${testCrateType} -- ${testfnName} ${additionalArgs}`;
+        }
     }
 
     if (make && makefileValid) {
@@ -140,13 +169,13 @@ async function exec(): Promise<string | null> {
         if (cargo_runner_args?.run) {
             additionalArgs = cargo_runner_args?.run;
         }
-        return `cargo run -p ${packageName}${binName ? ` --bin ${binName}` : ""}${additionalArgs ? ` ${additionalArgs}` : ""}`;
+        return `${prefix_env}cargo run -p ${packageName}${binName ? ` --bin ${binName}` : ""}${additionalArgs ? ` ${additionalArgs}` : ""}`;
     }
     if (crateType === "build") {
         if (cargo_runner_args?.build) {
             additionalArgs = cargo_runner_args?.build;
         }
-        return `cargo build -p ${packageName}${additionalArgs ? ` ${additionalArgs}` : ""}`;
+        return `${prefix_env}cargo build -p ${packageName}${additionalArgs ? ` ${additionalArgs}` : ""}`;
     }
     const document = editor.document;
     const docAttributeResult = await handleDocAttribute(document, position);
@@ -158,11 +187,11 @@ async function exec(): Promise<string | null> {
     }
     if (docAttributeResult?.isValid && docAttributeResult.fnName) {
         // follow this format cargo test --doc --package auth_service -- login
-        return `cargo test --doc --package ${packageName} -- ${docAttributeResult.fnName}${additionalArgs ? ` ${additionalArgs}` : ""}`;
+        return `${prefix_env}cargo test --doc --package ${packageName} -- ${docAttributeResult.fnName}${additionalArgs ? ` ${additionalArgs}` : ""}`;
     } else if (docTestResult.isValid && docTestResult.fnName) {
-        return `cargo test --doc --package ${packageName} -- ${docTestResult.fnName}${additionalArgs ? ` ${additionalArgs}` : ""}`;
+        return `${prefix_env}cargo test --doc --package ${packageName} -- ${docTestResult.fnName}${additionalArgs ? ` ${additionalArgs}` : ""}`;
     } else if (multilineDocsResult.isValid && multilineDocsResult.fnName) {
-        return `cargo test --doc --package ${packageName} -- ${multilineDocsResult.fnName}${additionalArgs ? ` ${additionalArgs}` : ""}`;
+        return `${prefix_env}cargo test --doc --package ${packageName} -- ${multilineDocsResult.fnName}${additionalArgs ? ` ${additionalArgs}` : ""}`;
     }
     console.log("Cannot run cargo commands for current opened file.");
     return null;

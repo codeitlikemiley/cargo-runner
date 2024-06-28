@@ -4,6 +4,7 @@ export interface CargoRunnerToml {
     build?: string;
     doctest?: string;
     bench?: string;
+    env?: string;
 }
 
 

@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import { isRustScript, runRustScript } from './rust_file_script';
-import parseUserInput from './parseUserInput';
 import addArgsToToml from './add_args_to_toml';
 import exec from './exec';
 
@@ -45,7 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Choose what arguments we would override
 		// run, test, bench, doctest , build
-		let context: string|null |undefined = await vscode.window.showQuickPick(['run', 'test', 'bench', 'doctest', 'build'], {
+		let context: string|null |undefined = await vscode.window.showQuickPick(['run', 'test', 'bench', 'doctest', 'build','env'], {
 			placeHolder: 'Choose what arguments context you would like to override.'
 		}).then(async (context) => {
 			if (context) {
@@ -61,7 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
 
         // Open input box for user input
         const userInput = await vscode.window.showInputBox({
-            prompt: 'Enter your args (e.g., "--count=5 --verbose --name=cargo-runner")',
+            prompt: `Enter your args e.g. [RUSTFLAGS="-Awarnings"] [--no-default-features --features <feature>]`,
             ignoreFocusOut: true
         });
 

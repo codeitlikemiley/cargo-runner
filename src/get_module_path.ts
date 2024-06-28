@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import isInsideModTests from './is_inside_mod_test';
+import { findCargoToml } from './find_cargo_toml';
 
 interface Module {
     name: string;
@@ -10,19 +11,18 @@ interface Module {
 }
 
 function getProjectModules(filePath: string): string[] {
-    // Get the workspace root directory
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders) {
-        throw new Error('No workspace folders found.');
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        vscode.window.showErrorMessage('No active editor found.');
+        return [];
     }
+    let cargoTomlPath =  findCargoToml(editor.document.uri.fsPath) ?? editor.document.uri.fsPath;
 
-    const rootDir = workspaceFolders[0].uri.fsPath;
+    const rootDir = path.dirname(cargoTomlPath);
+
     const srcDir = path.join(rootDir, 'src');
     const moduleFiles = ['lib.rs', 'main.rs'];
     let rootModuleFile: string | undefined;
-
-    console.log(`Root Directory: ${rootDir}`);
-    console.log(`Source Directory: ${srcDir}`);
 
     // Check if lib.rs or main.rs exists
     for (const file of moduleFiles) {
@@ -37,8 +37,6 @@ function getProjectModules(filePath: string): string[] {
     if (!rootModuleFile) {
         throw new Error('Neither lib.rs nor main.rs found in src directory.');
     }
-
-    console.log(`Root Module File: ${rootModuleFile}`);
 
     const moduleQueue: Module[] = [];
     const modulePaths: string[] = [];
@@ -105,20 +103,35 @@ function getProjectModules(filePath: string): string[] {
     return modulePaths;
 }
 
-// Function to match the file path with the module paths
 function findModuleName(filePath: string, modules: string[], insideModTest: boolean): string | undefined {
-    const rootDir = vscode.workspace.workspaceFolders![0].uri.fsPath + '/src';
-    console.log(`Root Directory: ${rootDir}`);
+    const editor = vscode.window.activeTextEditor;
+
+    if (!editor) {
+        vscode.window.showErrorMessage('No active editor found.');
+        return undefined;
+    }
+
+    let cargoTomlPath = findCargoToml(editor.document.uri.fsPath) ?? editor.document.uri.fsPath;
+    const rootDir = path.dirname(cargoTomlPath);
+    const srcDir = path.join(rootDir, 'src');
+
     // Replace '/' with '::', remove '.rs' extension, and handle 'mod.rs' files
-    let modulePath = filePath.replace(rootDir, '').replace(/^\//, '').replace(/\//g, '::').replace('.rs', '');
+    let modulePath = filePath.replace(srcDir, '').replace(/^\//, '').replace(/\//g, '::').replace('.rs', '');
     // If the path ends with '::mod', remove this part to correctly identify the module
     modulePath = modulePath.replace(/::mod$/, '');
-    console.log(`Module Path: ${modulePath}`);
-    // Remove leading '::' if present, then append '::tests' if insideModTest is true
-    const moduleName = insideModTest ? `${modulePath.replace(/^::/, '')}::tests` : modulePath.replace(/^::/, '');
-    console.log(`Module Name: ${moduleName}`);
-    const matchedModule = modules.find((module) => module === moduleName);
 
+    // Special handling for 'lib.rs' to not prepend 'lib::'
+    if (modulePath === 'lib') {
+        modulePath = ''; // Set modulePath to empty if it's 'lib'
+    }
+
+    // Ensure modulePath does not start with '::'
+    modulePath = modulePath.replace(/^::/, '');
+
+    // Construct moduleName, append 'tests' without leading '::' if insideModTest is true
+    const moduleName = insideModTest ? (modulePath ? `${modulePath}::tests` : "tests") : modulePath;
+    const matchedModule = modules.find((module) => module === moduleName);
+    
     return matchedModule;
 }
 

@@ -116,12 +116,12 @@ async function exec(): Promise<string | null> {
         if (fnName) {
             const testFnName = modulePath ? `${modulePath}::${fnName}` : fnName;
 
-            command += ` -- ${testFnName}` + ` --exact`;
+            command += ` -- ${testFnName}`;
         }
         if (cargo_runner_args?.test) {
             additionalArgs = cargo_runner_args?.test;
         }
-        return command + (additionalArgs ? ` ${additionalArgs}` : '');
+        return command + (additionalArgs ? ` ${additionalArgs}` : ' --exact --nocapture');
     }
 
     if (make && makefileValid) {

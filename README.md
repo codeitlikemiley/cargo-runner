@@ -49,7 +49,7 @@ RUSTFLAGS="-Awarnings"
 
 This would remove the parameters `RUSTFLAGS="-Awarnings"` on .`cargo_runner.toml` file
 
-NOTE: On Cargo workspace each can have their own `.cargo_runnner.toml` of if you want you can just use once config on whole worspace by placing it on your project root.
+NOTE: On Cargo workspace each crate can have their own `.cargo_runnner.toml` or set one at Workspace root as default to all crates.
 
 
 ### Cargo Run 

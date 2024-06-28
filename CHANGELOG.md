@@ -3,6 +3,16 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.3.2
+- Remove module path , replace with get_module path , now properly resolve and match nested modules, thus returning correct module name
+- Set default test args if nothing set to .cargo_runner.toml file test
+- Added support to run and test on example files
+- added env on cargo_runner.toml to have ability to pass in ENV Variables e.g. `RUSTFLAGS="-Awarnings"`
+- .cargo_runner.toml is now per-crate, and if you to use a default for all crates just create one on your workspace root
+- fix get_modules on cargo workspace
+- fix find_module on cargo workspace
+- fix missing crate type for build.rs 
+- fix #[test] macro not considered as in test context
 ## 1.3.0
 - [Fix issue on override](https://github.com/codeitlikemiley/cargo-runner/issues/12)
 - Add Support for Integration Test under tests folder 

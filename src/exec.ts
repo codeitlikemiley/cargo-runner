@@ -63,7 +63,6 @@ async function exec(): Promise<string | null> {
         return null;
     }
     const get_benchmark = await getBenchmark(filePath);
-
     if (get_benchmark) {
         let id = await findBenchmarkId();
         if (cargo_runner_args?.bench) {
@@ -96,7 +95,6 @@ async function exec(): Promise<string | null> {
         if (cargo_runner_args?.run) {
             additionalArgs = cargo_runner_args?.run;
         }
-        
         return `${prefix_env}cargo run ${exampleArgs} ${additionalArgs ? ` ${additionalArgs}` : ''}`;
     }
 

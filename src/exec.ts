@@ -13,13 +13,13 @@ import handleDocTest from './handle_doc_test';
 import handleMultilineDocTest from './handle_multiline_docs';
 import getTestFunctionName from './get_fn_name';
 import isInsideModTests from './is_inside_mod_test';
-import getModulePath from './get_module_path';
 import { log } from 'console';
 import { getBenchmark } from './get_benchmark';
 import { findBenchmarkId } from './find_benchmark_id';
 import findCargoRunnerArgsToml from './get_cargo_runner_args_config';
 import getArgs from './get_args';
 import { isIntegrationTest } from './is_integration_test';
+import { findModuleName, getProjectModules } from './get_module_path';
 
 async function exec(): Promise<string | null> {
     const editor = vscode.window.activeTextEditor;
@@ -95,19 +95,17 @@ async function exec(): Promise<string | null> {
         const fnName = getTestFunctionName(editor.document, position);
         log(`fn_name: ${fnName}`);
 
+        const inModTestsContext = isInsideModTests(editor.document, position);
 
         console.log('file path: ', filePath);
-        let modulePath = path.basename(filePath, '.rs');
-        if (modulePath === 'main' || modulePath === 'lib') {
-            modulePath = '';
-        } else {
-            modulePath = getModulePath(filePath, packageName!, binName);
-        }
+
+        const modules = getProjectModules(filePath);
+
+        const modulePath = findModuleName(filePath, modules , inModTestsContext) || '';
 
         log(`modulepath: ${modulePath}`);
 
         let command = `cargo ${testCommand} --package ${packageName}`;
-        const inModTestsContext = isInsideModTests(editor.document, position);
 
         if (crateType === 'bin' && binName) {
             command += ` --bin ${binName}`;
@@ -116,27 +114,9 @@ async function exec(): Promise<string | null> {
         }
 
         if (fnName) {
-            let testFnName = null;
+            const testFnName = modulePath ? `${modulePath}::${fnName}` : fnName;
 
-            if (inModTestsContext) {
-                if (fnName === "tests" || fnName === "tests::tests") {
-                    log('running all test');
-                    testFnName = modulePath ? `${modulePath}::tests` : "tests";
-                    console.log('IF: fn name is: ${fnName}');
-                } else {
-                    log('running specific test');
-                    testFnName = modulePath ? `${modulePath}::tests::${fnName}` : `tests::${fnName}`;
-                    console.log(`testFnName generated inModTestsContext: ${testFnName}`);
-
-                }
-            } else {
-                log('running specific test outside mod test');
-                testFnName = modulePath ? `${modulePath}::${fnName}` : fnName;
-
-                console.log(`testFnName generated standalone: ${testFnName}`);
-            }
-
-            command += ` -- ${testFnName}`;
+            command += ` -- ${testFnName}` + ` --exact`;
         }
         if (cargo_runner_args?.test) {
             additionalArgs = cargo_runner_args?.test;

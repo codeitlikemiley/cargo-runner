@@ -1,7 +1,6 @@
 import * as path from 'path';
 import { findCargoToml } from './find_cargo_toml';
 import getCargoToml from './get_cargo_toml';
-import getModulePath from './get_module_path';
 import { getPackage } from './get_package';
 
 

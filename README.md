@@ -8,15 +8,13 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
 
 ## Features
 
-- **Context-Aware Commands**: Commands are triggered near your cursor, making the development process more intuitive and less disruptive.
-- **Intelligent Cargo.toml Parsing**: Automatically detects and parses Cargo.toml if the current file is of type bin or lib. This feature is essential for build operations and ensures that your project's configuration is always up-to-date.
-- **One-Key Compilation & Execution**: Bind Cargo run/build/test commands to a single keymap (CMD + R or CTRL + R), enabling swift project compilation and execution.
-- **Makefile Integration**: Offers the ability to override Cargo run or Cargo build commands with a custom `Makefile`, providing more control and flexibility for complex build processes.
-- **Enhanced Testing with Cargo-Nextest**: Integrates with `cargo-nextest` (if installed) to offer up to 3x better performance on tests. This feature optimizes test execution, making it faster and more efficient.
-- **Real-Time Feedback**: Immediate visual feedback on the status of build and test processes, helping you identify and fix issues more quickly.
-- **Customizable Environment**: Tailor Cargo Runner to your workflow with customizable settings and keybindings.
+- **Context Aware Commands** : Just fire the Keystroke <kbd>CMD + R</kbd> let it do the magic of either doing cargo `run` | `build` | `test` | `bench`.
 
-- **Override Arguments** : Quickly Override Command Arguments on different context such as: `run` , `build`, `test`, `doctest` and `bench` 
+- **Makefile Integration**: Offers the ability to override Cargo run or Cargo build commands with a custom `Makefile`, providing more control and flexibility for complex build processes.
+
+- **Enhanced Testing with Cargo-Nextest**: well-defined preset and integration to cargo-nextest command if it is installed it will replace the default `cargo test` command, if you need more power you can override arguments.
+
+- **Override Arguments** : Quickly Override Command Arguments on different context such as: `run` , `build`, `test`, `doctest` ,`bench`  and `env` using <kbd>CMD + SHIFT +R </kbd>
 
 ## Demo Screenshot
 
@@ -31,11 +29,12 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
     - doctest
     - bench
 3. Type those parameters you wanna add to override the default 
-e.g. 
+e.g.  `env`
 
 ```sh
---jobs 5 --all-features
+RUSTFLAGS="-Awarnings"
 ```
+
 > Removing Arguments
 1. Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd>
 
@@ -45,9 +44,12 @@ e.g.
     - test
     - doctest
     - bench
+
 3. Press Enter (dont type anything)
 
-This would remove the parameters `--jobs 5 --all-features` on .`cargo_runner.toml` file
+This would remove the parameters `RUSTFLAGS="-Awarnings"` on .`cargo_runner.toml` file
+
+NOTE: On Cargo workspace each can have their own `.cargo_runnner.toml` of if you want you can just use once config on whole worspace by placing it on your project root.
 
 
 ### Cargo Run 
@@ -66,6 +68,8 @@ name ="example"
 4. Workspace Crates
 
 ![Run](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/run.png?raw=true)
+
+Note: Since version `1.3.2` , you can also `run` or `test` files on `examples/` folder
 
 ---
 ### Cargo Build

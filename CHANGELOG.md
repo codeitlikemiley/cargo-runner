@@ -3,6 +3,12 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.3.3
+- fix examples missing package name
+- fix integration test implementation with cargo-nextest
+- use commandArray and filter for falsey values to generate final command
+- find_modules supports other special cases like examples/
+
 ## 1.3.2
 - Remove module path , replace with get_module path , now properly resolve and match nested modules, thus returning correct module name
 - Set default test args if nothing set to .cargo_runner.toml file test

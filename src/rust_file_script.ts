@@ -1,6 +1,5 @@
 // Import the fs and child_process modules
 import fs from 'fs';
-import { spawn } from 'child_process';
 
 // Define a function that takes a file path as an argument and returns a boolean
 function isRustScript(filePath: string): boolean {

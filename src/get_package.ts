@@ -5,9 +5,9 @@ import * as path from 'path';
 async function getPackage(filePath: string): Promise<string | null> {
     let currentPath = filePath;
     let rootPath = vscode.workspace.rootPath;
-    if (rootPath == undefined) {
+    if (rootPath === undefined) {
         console.log('not on vscode workspace');
-        return null
+        return null;
     }
     let parentPath = path.dirname(rootPath);
     

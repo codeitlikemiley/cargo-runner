@@ -31,20 +31,25 @@ export function activate(context: vscode.ExtensionContext) {
 			terminal.sendText(command);
 			terminal.show();
 		} else {
-			vscode.window.showInformationMessage('Cannot run.');
+			let analyzer = vscode.extensions.getExtension('rust-lang.rust-analyzer');
+			if (analyzer) {
+				vscode.commands.executeCommand('rust-analyzer.run', editor.document.uri);
+			} else {
+				vscode.window.showInformationMessage('Cannot run.');
+			}
 		}
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('cargo-runner.addArgs', async () => {
-        const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-            vscode.window.showErrorMessage('No active editor found.');
-            return;
-        }
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			vscode.window.showErrorMessage('No active editor found.');
+			return;
+		}
 
 		// Choose what arguments we would override
 		// run, test, bench, doctest , build
-		let context: string|null |undefined = await vscode.window.showQuickPick(['run', 'test', 'bench', 'doctest', 'build','env'], {
+		let context: string | null | undefined = await vscode.window.showQuickPick(['run', 'test', 'bench', 'doctest', 'build', 'env'], {
 			placeHolder: 'Choose what arguments context you would like to override.'
 		}).then(async (context) => {
 			if (context) {
@@ -57,20 +62,18 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showErrorMessage('No context selected.');
 			return;
 		}
+		// Open input box for user input
+		const userInput = await vscode.window.showInputBox({
+			prompt: `Enter your args e.g. [RUSTFLAGS="-Awarnings"] [--no-default-features --features <feature>]`,
+			ignoreFocusOut: true
+		});
 
-        // Open input box for user input
-        const userInput = await vscode.window.showInputBox({
-            prompt: `Enter your args e.g. [RUSTFLAGS="-Awarnings"] [--no-default-features --features <feature>]`,
-            ignoreFocusOut: true
-        });
-
-        if (!userInput || userInput.trim() === "" || userInput === undefined || userInput === null){
+		if (!userInput || userInput.trim() === "" || userInput === undefined || userInput === null) {
 			// we should delete the whole context if no args are provided
 			await addArgsToToml("", context);
-        }else {
+		} else {
 			// fill the context with the input
 			await addArgsToToml(userInput, context);
 		}
-		
-    }));
+	}));
 }

@@ -3,6 +3,10 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.3.5
+- drop support for doctest
+- use rust-analyzer as fallback (we can run doctest using this)
+- cleanup
 ## 1.3.4
 - fix doc test, if we run test on struct it would run all test, if on impl block it would run the fn
 ## 1.3.3

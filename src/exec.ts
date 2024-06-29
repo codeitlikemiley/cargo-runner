@@ -8,9 +8,6 @@ import { getBin } from './get_bin';
 import { isCargoNextestInstalled } from './is_cargo_nextest_install';
 import { isMakeAvailable } from './is_make_available';
 import path from 'path';
-import handleDocAttribute from './handle_doc_attribute';
-import handleDocTest from './handle_doc_test';
-import handleMultilineDocTest from './handle_multiline_docs';
 import getTestFunctionName from './get_test_fn_name';
 import isInsideModTests from './is_inside_mod_test';
 import { getBenchmark } from './get_benchmark';
@@ -20,12 +17,10 @@ import getArgs from './get_args';
 import { isIntegrationTest } from './is_integration_test';
 import { isInsideExamples } from './is_inside_examples';
 import findModuleName from './find_module_name';
-import findStructOrEnum from './find_struct_or_enum';
 
 async function exec(): Promise<string | null> {
     const editor = vscode.window.activeTextEditor;
     if (!editor) {
-        console.log('No active file.');
         return null;
     }
 
@@ -41,16 +36,6 @@ async function exec(): Promise<string | null> {
     const cargo_runner_args = await getArgs(cargoRunnerArgsConfig);
     const prefix_env = cargo_runner_args?.env ? `${cargo_runner_args.env} ` : '';
 
-    console.log(`----------------------------------------------------------`);
-    console.log(`makefile_path: ${makefilePath || "nil"}`);
-    console.log(`makefile_valid: ${makefileValid}`);
-    console.log(`is_test_context: ${inTestContext}`);
-    console.log(`crate_type: ${crateType || "nil"}`);
-    console.log(`package_name: ${packageName || "nil"}`);
-    console.log(`bin_name: ${binName || "nil"}`);
-    console.log(`cargo runner args: ${cargo_runner_args || "nil"}`);
-
-    console.log(`----------------------------------------------------------`);
 
     let cmd: string | null;
     let additionalArgs: string | null = null;
@@ -59,7 +44,6 @@ async function exec(): Promise<string | null> {
     const currentLineText = editor.document.lineAt(position.line).text;
 
     if (currentLineText.includes("#[cfg(test)]")) {
-        console.log('Current line contains #[cfg(test)], returning null.');
         return null;
     }
     const get_benchmark = await getBenchmark(filePath);
@@ -219,64 +203,7 @@ async function exec(): Promise<string | null> {
         }
         return `${prefix_env}cargo build -p ${packageName}${additionalArgs ? ` ${additionalArgs}` : ""}`;
     }
-    const document = editor.document;
-    const docAttributeResult = await handleDocAttribute(document, position);
-    const docTestResult = await handleDocTest(document, position);
-    const multilineDocsResult = await handleMultilineDocTest(document, position);
-
-    const cargo_command = prefix_env ? `${prefix_env}cargo` : 'cargo';
-    const test_command = "test --doc";
-    const package_command = `--package ${packageName}`;
-    const modulename = findModuleName(filePath, isInsideModTests(document, position)) || '';
-    let  {name , type} = await findStructOrEnum(document,position) ?? { name: '', type: '' };
-
-    console.log(`name: ${name}, type: ${type}`);
-
-    let commandArray = [];
-    if (type === 'struct' || type === 'enum') {
-        commandArray =  [
-            cargo_command,
-            test_command,
-            package_command,
-            `-- ${modulename ? `${modulename}::` : ''}${name}`,
-            additionalArgs
-        ];
-        return commandArray.filter(Boolean).join(' ');
-    }
     
-    if (cargo_runner_args?.doctest) {
-        additionalArgs = cargo_runner_args?.doctest;
-    }
-    if (docAttributeResult?.isValid && docAttributeResult.fnName) {
-        commandArray =  [
-            cargo_command,
-            test_command,
-            package_command,
-            `-- ${modulename ? `${modulename}::` : ''}${name ? `${name}::` : ''}${docAttributeResult.fnName}`,
-            additionalArgs
-        ];
-        return commandArray.filter(Boolean).join(' ');
-
-    } else if (docTestResult.isValid && docTestResult.fnName) {
-        commandArray = [
-            cargo_command,
-            test_command,
-            package_command,
-            `-- ${modulename ? `${modulename}::` : ''}${name ? `${name}::` : ''}${docTestResult.fnName}`,
-            additionalArgs
-        ];
-        return commandArray.filter(Boolean).join(' ');
-    } else if (multilineDocsResult.isValid && multilineDocsResult.fnName) {
-        commandArray = [
-            cargo_command,
-            test_command,
-            package_command,
-            `-- ${modulename ? `${modulename}::` : ''}${name ? `${name}::` : ''}${multilineDocsResult.fnName}`,
-            additionalArgs
-        ];
-        return commandArray.filter(Boolean).join(' ');
-    }
-    console.log("Cannot run cargo commands for current opened file.");
     return null;
 }
 

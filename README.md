@@ -28,6 +28,7 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
     - test
     - doctest
     - bench
+    - env
 3. Type those parameters you wanna add to override the default 
 e.g.  `env`
 

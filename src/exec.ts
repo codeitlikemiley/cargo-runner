@@ -13,7 +13,6 @@ import handleDocTest from './handle_doc_test';
 import handleMultilineDocTest from './handle_multiline_docs';
 import getTestFunctionName from './get_fn_name';
 import isInsideModTests from './is_inside_mod_test';
-import { log } from 'console';
 import { getBenchmark } from './get_benchmark';
 import { findBenchmarkId } from './find_benchmark_id';
 import findCargoRunnerArgsToml from './get_cargo_runner_args_config';
@@ -57,14 +56,14 @@ async function exec(): Promise<string | null> {
 
     const position = editor.selection.active;
     const currentLineText = editor.document.lineAt(position.line).text;
-    // fix for isTestContext , avoid use to invoke command at this line
+
     if (currentLineText.includes("#[cfg(test)]")) {
         console.log('Current line contains #[cfg(test)], returning null.');
         return null;
     }
     const get_benchmark = await getBenchmark(filePath);
     if (get_benchmark) {
-        let id = await findBenchmarkId();
+        const id = await findBenchmarkId();
         if (cargo_runner_args?.bench) {
             additionalArgs = cargo_runner_args?.bench;
         }
@@ -75,19 +74,49 @@ async function exec(): Promise<string | null> {
     }
 
     if (isIntegrationTest(filePath)) {
-        if (cargo_runner_args?.test) {
-            additionalArgs = cargo_runner_args?.test;
-        }
         const isNextestInstalled = await isCargoNextestInstalled();
         const testCommand = isNextestInstalled ? 'nextest run' : 'test';
         const integrationTestName = path.basename(filePath, '.rs');
         const fnName = getTestFunctionName(editor.document, position);
         const inModTestsContext = isInsideModTests(editor.document, position);
-        if (inModTestsContext) {
-            return `${prefix_env}cargo ${testCommand} --package ${packageName} --test ${integrationTestName} -- tests::${fnName}${additionalArgs ? ` ${additionalArgs}` : ''}`;
-        } else {
-            return `${prefix_env}cargo ${testCommand} --package ${packageName} --test ${integrationTestName} -- ${fnName}${additionalArgs ? ` ${additionalArgs}` : ''}`;
+
+        if (cargo_runner_args?.test) {
+            additionalArgs = cargo_runner_args?.test;
         }
+
+        let default_args = isNextestInstalled ? "--nocapture" : "--exact --nocapture --show-output";
+        additionalArgs = additionalArgs || default_args;
+
+        let testFunctionName = fnName ? `tests::${fnName}` : '';
+        if (!inModTestsContext) {
+            testFunctionName = fnName || '';
+        }
+
+        let commandArray = [];
+
+        if (isNextestInstalled) {
+            commandArray = [
+                prefix_env ? `${prefix_env}cargo` : 'cargo',
+                testCommand,
+                `--test ${integrationTestName}`,
+                `-E 'test(/^${testFunctionName}$/)'`,
+                `--package ${packageName}`,
+                additionalArgs
+            ];
+        } else {
+            commandArray = [
+               prefix_env ? `${prefix_env}cargo` : 'cargo',
+                testCommand,
+                `--package ${packageName}`,
+                `--test ${integrationTestName}`,
+                testFunctionName ? `-- ${testFunctionName}` : '',
+                additionalArgs
+            ];
+        }
+
+        const finalCommand = commandArray.filter(Boolean).join(' ');
+
+        return finalCommand;
     }
 
     if (isInsideExamples(filePath) && !inTestContext) {
@@ -95,7 +124,16 @@ async function exec(): Promise<string | null> {
         if (cargo_runner_args?.run) {
             additionalArgs = cargo_runner_args?.run;
         }
-        return `${prefix_env}cargo run ${exampleArgs} ${additionalArgs ? ` ${additionalArgs}` : ''}`;
+        let commandArray = [];
+        commandArray = [
+            prefix_env ? `${prefix_env}cargo` : 'cargo',
+            "run",
+            packageName ? `--package ${packageName}` : '',
+            exampleArgs,
+            additionalArgs
+        ];
+        const finalCommand = commandArray.filter(Boolean).join(' ');
+        return finalCommand;
     }
 
     if (inTestContext) {
@@ -104,19 +142,13 @@ async function exec(): Promise<string | null> {
 
         const inModTestsContext = isInsideModTests(editor.document, position);
 
-        const modules = getProjectModules(filePath);
-
-        let modulePath = findModuleName(filePath, modules, inModTestsContext) || '';
+        let modulePath = findModuleName(filePath, inModTestsContext) || '';
 
         const fnName = getTestFunctionName(editor.document, position);
 
-        let testfnName = '';
-        if (fnName) {
-            testfnName = modulePath ? `${modulePath}::${fnName}` : fnName;
-        }
+        let testfnName = fnName ? (modulePath ? `${modulePath}::${fnName}` : fnName) : '';
 
         let testCrateType = '';
-
         if (crateType === 'bin' && binName) {
             testCrateType = `--bin ${binName}`;
         } else if (crateType === 'lib') {
@@ -131,25 +163,36 @@ async function exec(): Promise<string | null> {
         if (cargo_runner_args?.test) {
             additionalArgs = cargo_runner_args?.test;
         }
-        let default_args = isNextestInstalled ? "--nocapture" : "--exact --nocapture --show-output";
 
-        if (!additionalArgs) {
-            additionalArgs = default_args;
-        }
+        let default_args = isNextestInstalled ? "--nocapture" : "--exact --nocapture --show-output";
+        additionalArgs = additionalArgs || default_args;
+
+        let commandArray = [];
 
         if (isNextestInstalled) {
-            if (exampleArgs) {
-                return `${prefix_env}cargo nextest run ${exampleArgs} -E 'test(/${testfnName}$/)' -p ${packageName} ${testCrateType} ${additionalArgs}`;
-            }
-            return `${prefix_env}cargo nextest run -E 'test(/${testfnName}$/)' -p ${packageName} ${testCrateType} ${additionalArgs}`;
+            commandArray = [
+                `${prefix_env}cargo nextest run`,
+                exampleArgs ? `${exampleArgs} -E 'test(/${testfnName}$/)' -p ${packageName}` : `-E 'test(/${testfnName}$/)' -p ${packageName}`,
+                testCrateType,
+                additionalArgs
+            ];
         } else {
-            if (exampleArgs) {
-                return `${prefix_env}cargo test --package ${packageName} ${exampleArgs} -- ${testfnName} ${additionalArgs}`;
-            }
-
-            return `${prefix_env}cargo test --package ${packageName} ${testCrateType} -- ${testfnName} ${additionalArgs}`;
+            commandArray = [
+                `${prefix_env}cargo test`,
+                `--package ${packageName}`,
+                exampleArgs,
+                testCrateType,
+                '--',
+                testfnName,
+                additionalArgs
+            ];
         }
+
+        const finalCommand = commandArray.filter(Boolean).join(' ');
+
+        return finalCommand;
     }
+
 
     if (make && makefileValid) {
         const makefileDir = makefilePath ? path.dirname(vscode.Uri.parse(makefilePath).path) : '';

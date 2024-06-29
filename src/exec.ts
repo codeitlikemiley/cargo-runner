@@ -18,8 +18,8 @@ import { findBenchmarkId } from './find_benchmark_id';
 import findCargoRunnerArgsToml from './get_cargo_runner_args_config';
 import getArgs from './get_args';
 import { isIntegrationTest } from './is_integration_test';
-import { findModuleName, getProjectModules } from './get_module_path';
 import { isInsideExamples } from './is_inside_examples';
+import findModuleName from './find_module_name';
 
 async function exec(): Promise<string | null> {
     const editor = vscode.window.activeTextEditor;

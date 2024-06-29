@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 export default function getTestFunctionName(document: vscode.TextDocument, position: vscode.Position): string | null {
     let currentLine = position.line;
 
-    const log = (message: string) => console.log(`[getTestFunctionName]: ${message}`);
 
     function isInsideModTests(line: number): boolean {
         for (let i = line; i >= 0; i--) {
@@ -73,7 +72,6 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
 
 
 
-    log(`Starting at line: ${currentLine + 1}`);
 
 
     // Handle cursor on test macro or function declaration
@@ -84,7 +82,6 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
         }
         const match = document.lineAt(functionNameLine).text.match(/(async\s+)?fn\s+(\w+)/);
         if (match) {
-            log(`Function name found on line: 85: ${match[2]}`);
             return match[2];
         }
     }
@@ -93,7 +90,7 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
     if (isClosingBrace(currentLine)) {
         let foundTestMacro = false;
         let testFunctionLine = -1;
-    
+
         for (let i = currentLine; i >= 0; i--) {
             if (isTestMacro(i)) {
                 foundTestMacro = true;
@@ -110,15 +107,13 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
                 break;
             }
         }
-    
+
         if (foundTestMacro && testFunctionLine !== -1) {
             const match = document.lineAt(testFunctionLine).text.match(/(async\s+)?fn\s+(\w+)/);
             if (match) {
-                log(`Function name found: ${match[2]}`);
                 return match[2];
             }
         } else {
-            log('Cursor on closing brace, but not a test function, returning null');
             return returnModuleNameOrNull();
         }
     }
@@ -126,9 +121,8 @@ export default function getTestFunctionName(document: vscode.TextDocument, posit
     // Handle cursor inside a function body
     const functionName = isInsideTestFunction();
     if (functionName) {
-        return  functionName;
+        return functionName;
     }
 
-    log("No test function found");
     return returnModuleNameOrNull();
 }

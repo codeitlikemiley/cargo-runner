@@ -3,6 +3,8 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.3.4
+- fix doc test, if we run test on struct it would run all test, if on impl block it would run the fn
 ## 1.3.3
 - fix examples missing package name
 - fix integration test implementation with cargo-nextest

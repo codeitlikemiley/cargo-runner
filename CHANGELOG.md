@@ -3,6 +3,10 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.4.0
+- clean up code use commandArray to filter out empty string on command args
+- support test debugger if we have a breakpoint
+- fix issue with wrong regex pattern causing rare case not matching a test block
 ## 1.3.5
 - drop support for doctest
 - use rust-analyzer as fallback (we can run doctest using this)

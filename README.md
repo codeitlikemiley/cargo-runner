@@ -24,84 +24,117 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
 
 ## Demo Screenshot
 
-### Debug Test 
-
-1. Add a breakpoint to any test
-2. Press <kbd>CMD</kbd>+<kbd>R</kbd> on Cursor
-
-![Run](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/debug.png?raw=true)
-
 ### Cargo Run 
 
-> Press <kbd>CMD</kbd>+<kbd>R</kbd> on Cursor
+1. Go Inside any files that can be run :
 
-1. Simple Rust project with `src/main.rs`
-2. Any Rust file that has main function located at `/bin/*` folder (Implicit not declared on Cargo.toml)
-3. any file declared as [[bin]] on Cargo.toml e.g.
+    - `src/main.rs`
+    - `src/bin/*`
+    - `examples/*`
+    - any file declare as [[bin]] on Cargo.toml
+
+e.g.
 
 ```toml
 [[bin]] 
 path = "src/example.rs"
 name ="example"
 ```
-4. Workspace Crates
+
+Note: the file you wanna run must have a `fn main block`
+
+2. Press <kbd>CMD</kbd>+<kbd>R</kbd>
+
 
 ![Run](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/run.png?raw=true)
 
-Note: Since version `1.3.2` , you can also `run` or `test` files on `examples/` folder
 
 ---
 ### Cargo Build
 
-> Press <kbd>CMD</kbd>+<kbd>R</kbd> on Cursor
-1. Any build.rs file that has main() fn
+
+1. Go to  Any `build.rs` file that has`fn main block`
+
+2. Press <kbd>CMD</kbd>+<kbd>R</kbd> on Cursor
 
 ![Build](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/build.png?raw=true)
----
-### Cargo Test or Cargo Nextest (if installed)
-> Press <kbd>CMD</kbd>+<kbd>R</kbd> on  Cursor
-1. Any file on lib.rs or main.rs or file declared as [[bin]] that has the macro : #[test] and #[tokio::test]
 
-Note: If you press inside the context of function test then it would run that single test, if you run it outside any function test which is inside any mod test it would run the whole test
+---
+### Cargo Test or Cargo Nextest (if installed) for specific test
+
+1. Go to any file with `test block` supports  anykind of `test macro` e.g. #[test] or #[tokio::test]
+
+2. Place your cursor inside the `test block` you wanna run test
+
+3. Press <kbd>CMD</kbd>+<kbd>R</kbd> on  Cursor
+
+Note: If `Cargo Nextest` is installed it would use that as default test runner instead of `cargo test`
+
 
 ![Test](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/cargo-nextest.png?raw=true)
 
-### Fallback Runner (using rust-analyzer)
-1. Press <kbd>CMD</kbd>+<kbd>R</kbd> 
 
-> where mouse context is outside of supported context by cargo runner 
+### Debug Test 
 
-e.g. `mod test code block` it would use `rust-analyzer` as fallback runner
+1. Add a breakpoint to any `test block`
+
+2. Place your cursor inside the `test block` that have that breakpoint
+
+3. Press <kbd>CMD</kbd>+<kbd>R</kbd>
+
+![Run](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/debug.png?raw=true)
+
+
+### Fallback Runner (using rust-analyzer) for running all test
+
+
+1. Place your cursor somewhere inside of a `mod test block`
+
+2. Press <kbd>CMD</kbd>+<kbd>R</kbd> 
+
 
 ![fallback](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/fallback.png?raw=true)
 
-### Running Doc test (using rust-analyzer)
-1. Press <kbd>CMD</kbd>+<kbd>R</kbd> 
 
-> where mouse context is outside of supported context by cargo runner 
 
-e.g. `doc block` it would use `rust-analyzer` as fallback runner
+### Fallback Runner (suing rust-analyzer) for running doc-test
+
+1. Place your cursor somewhere inside a `doc test block`
+
+2. Press <kbd>CMD</kbd>+<kbd>R</kbd> 
+
 
 ![fallback](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/doc-test-fallback.png?raw=true)
 
-### Override Arguments
 
-> Adding Arguments
+### Adding Arguments
+
+Note: `.cargo_runner.toml` would be created when running this command , and Only one `.cargo_runner.toml` file per create
+
+You may wanna add this to `.gitignore` file
+
 1. Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd>
+
 2. Choose context from any of the following options:
     - run
     - build
     - test
     - bench
     - env
-3. Type those parameters you wanna add to override the default 
-e.g.  `env`
 
+3. Type those parameters you wanna add to override the default 
+
+e.g. choose:  `env`
+
+4. Type on the user input the args you wanna pass as override argument
+
+e.g.
 ```sh
 RUSTFLAGS="-Awarnings"
 ```
 
-> Removing Arguments
+### Removing Arguments
+
 1. Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd>
 
 2. Choose context from any of the following options:
@@ -115,7 +148,6 @@ RUSTFLAGS="-Awarnings"
 
 This would remove the parameters `RUSTFLAGS="-Awarnings"` on .`cargo_runner.toml` file
 
-NOTE: On Cargo workspace each crate can have their own `.cargo_runnner.toml` or set one at Workspace root as default to all crates.
 
 ---
 

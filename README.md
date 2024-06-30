@@ -8,7 +8,7 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
 
 ## Features
 
-- **Context Aware Commands** : Just fire the Keystroke <kbd>CMD + R</kbd> let it do the magic of either doing cargo `run` | `build` | `test` | `bench`.
+- **Context Aware Command Runner** : Just fire the Keystroke <kbd>CMD + R</kbd> let it do the magic of either doing cargo `run` | `build` | `test` | `bench`.
 
 - **Makefile Integration**: Offers the ability to override Cargo run or Cargo build commands with a custom `Makefile`, providing more control and flexibility for complex build processes.
 

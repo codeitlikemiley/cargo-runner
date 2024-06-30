@@ -97,7 +97,7 @@ Note: If `Cargo Nextest` is installed it would use that as default test runner i
 
 
 
-### Fallback Runner (suing rust-analyzer) for running doc-test
+### Fallback Runner (using rust-analyzer) for running doc-test
 
 1. Place your cursor somewhere inside a `doc test block`
 

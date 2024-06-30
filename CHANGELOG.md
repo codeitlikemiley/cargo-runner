@@ -3,6 +3,8 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.4.1
+- drop support for single file script in rust
 ## 1.4.0
 - clean up code use commandArray to filter out empty string on command args
 - support test debugger if we have a breakpoint

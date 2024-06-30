@@ -16,6 +16,10 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
 
 - **Override Arguments** : Quickly Override Command Arguments on different context such as: `run` , `build`, `test`, `bench`  and `env` using <kbd>CMD + SHIFT +R </kbd>
 
+- **Codelldb Debugger Integration**: Automatically integrates with codelldb debugger for running Rust tests if there is a breakpoint.
+
+- **Rust Analyzer Runnables Fallback**: Uses Rust Analyzer runnables if there is no supported context match, e.g., doc tests.
+
 ## Demo Screenshot
 
 ### Override Arguments

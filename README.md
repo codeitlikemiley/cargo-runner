@@ -22,15 +22,6 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
 
 ## Demo Screenshot
 
-### Fallback Runner (using rust-analyzer)
-1. Press <kbd>CMD</kbd>+<kbd>R</kbd> 
-
-> where mouse context is outside of supported context by cargo runner 
-
-e.g. `mod test code block` it would use `rust-analyzer` as fallback runner
-
-![fallback](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/fallback.png?raw=true)
-
 ### Debug Test 
 
 1. Add a breakpoint to any test
@@ -72,6 +63,24 @@ Note: Since version `1.3.2` , you can also `run` or `test` files on `examples/` 
 Note: If you press inside the context of function test then it would run that single test, if you run it outside any function test which is inside any mod test it would run the whole test
 
 ![Test](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/cargo-nextest.png?raw=true)
+
+### Fallback Runner (using rust-analyzer)
+1. Press <kbd>CMD</kbd>+<kbd>R</kbd> 
+
+> where mouse context is outside of supported context by cargo runner 
+
+e.g. `mod test code block` it would use `rust-analyzer` as fallback runner
+
+![fallback](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/fallback.png?raw=true)
+
+### Running Doc test (using rust-analyzer)
+1. Press <kbd>CMD</kbd>+<kbd>R</kbd> 
+
+> where mouse context is outside of supported context by cargo runner 
+
+e.g. `doc block` it would use `rust-analyzer` as fallback runner
+
+![fallback](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/doc-test.png?raw=true)
 
 ### Override Arguments
 

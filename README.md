@@ -20,6 +20,8 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
 
 - **Rust Analyzer Runnables Fallback**: Uses Rust Analyzer runnables if there is no supported context match, e.g., doc tests.
 
+- **Support Cargo Workspace** : Cargo runner works on simply rust project to complex Cargo workspace.
+
 ## Demo Screenshot
 
 ### Debug Test 

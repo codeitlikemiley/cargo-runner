@@ -71,7 +71,7 @@ Note: Since version `1.3.2` , you can also `run` or `test` files on `examples/` 
 
 Note: If you press inside the context of function test then it would run that single test, if you run it outside any function test which is inside any mod test it would run the whole test
 
-![Test](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/nextest.png?raw=true)
+![Test](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/cargo-nextest.png?raw=true)
 
 ### Override Arguments
 

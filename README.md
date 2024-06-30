@@ -80,7 +80,7 @@ e.g. `mod test code block` it would use `rust-analyzer` as fallback runner
 
 e.g. `doc block` it would use `rust-analyzer` as fallback runner
 
-![fallback](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/doc-test.png?raw=true)
+![fallback](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/doc-test-fallback.png?raw=true)
 
 ### Override Arguments
 

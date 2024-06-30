@@ -38,40 +38,6 @@ e.g. `mod test code block` it would use `rust-analyzer` as fallback runner
 
 ![Run](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/debug.png?raw=true)
 
-### Override Arguments
-
-> Adding Arguments
-1. Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd>
-2. Choose context from any of the following options:
-    - run
-    - build
-    - test
-    - bench
-    - env
-3. Type those parameters you wanna add to override the default 
-e.g.  `env`
-
-```sh
-RUSTFLAGS="-Awarnings"
-```
-
-> Removing Arguments
-1. Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd>
-
-2. Choose context from any of the following options:
-    - run
-    - build
-    - test
-    - bench
-    - env
-
-3. Press Enter (dont type anything)
-
-This would remove the parameters `RUSTFLAGS="-Awarnings"` on .`cargo_runner.toml` file
-
-NOTE: On Cargo workspace each crate can have their own `.cargo_runnner.toml` or set one at Workspace root as default to all crates.
-
-
 ### Cargo Run 
 
 > Press <kbd>CMD</kbd>+<kbd>R</kbd> on Cursor
@@ -106,6 +72,40 @@ Note: Since version `1.3.2` , you can also `run` or `test` files on `examples/` 
 Note: If you press inside the context of function test then it would run that single test, if you run it outside any function test which is inside any mod test it would run the whole test
 
 ![Test](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/nextest.png?raw=true)
+
+### Override Arguments
+
+> Adding Arguments
+1. Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd>
+2. Choose context from any of the following options:
+    - run
+    - build
+    - test
+    - bench
+    - env
+3. Type those parameters you wanna add to override the default 
+e.g.  `env`
+
+```sh
+RUSTFLAGS="-Awarnings"
+```
+
+> Removing Arguments
+1. Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd>
+
+2. Choose context from any of the following options:
+    - run
+    - build
+    - test
+    - bench
+    - env
+
+3. Press Enter (dont type anything)
+
+This would remove the parameters `RUSTFLAGS="-Awarnings"` on .`cargo_runner.toml` file
+
+NOTE: On Cargo workspace each crate can have their own `.cargo_runnner.toml` or set one at Workspace root as default to all crates.
+
 ---
 
 ## Advanced Features

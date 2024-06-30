@@ -22,6 +22,22 @@ Cargo Runner is a powerful and intuitive tool designed to streamline the develop
 
 ## Demo Screenshot
 
+### Fallback Runner (using rust-analyzer)
+1. Press <kbd>CMD</kbd>+<kbd>R</kbd> 
+
+> where mouse context is outside of supported context by cargo runner 
+
+e.g. `mod test code block` it would use `rust-analyzer` as fallback runner
+
+![fallback](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/fallback.png?raw=true)
+
+### Debug Test 
+
+1. Add a breakpoint to any test
+2. Press <kbd>CMD</kbd>+<kbd>R</kbd> on Cursor
+
+![Run](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/debug.png?raw=true)
+
 ### Override Arguments
 
 > Adding Arguments

@@ -107,11 +107,7 @@ Note: If `Cargo Nextest` is installed it would use that as default test runner i
 ![fallback](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/doc-test-fallback.png?raw=true)
 
 
-### Adding Arguments
-
-Note: `.cargo_runner.toml` would be created when running this command , and Only one `.cargo_runner.toml` file per create
-
-You may wanna add this to `.gitignore` file
+### Adding Command Arguments
 
 1. Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd>
 
@@ -133,7 +129,13 @@ e.g.
 RUSTFLAGS="-Awarnings"
 ```
 
-### Removing Arguments
+> Note: `.cargo_runner.toml` would be created per create , you can have multiple `.cargo_runner.toml` on workspace
+
+
+> Important: You may wanna add this to `.gitignore` file
+
+
+### Removing Command Arguments
 
 1. Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd>
 

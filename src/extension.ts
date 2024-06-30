@@ -1,5 +1,4 @@
 import * as vscode from 'vscode';
-import { isRustScript, runRustScript } from './rust_file_script';
 import addArgsToToml from './add_args_to_toml';
 import exec from './exec';
 
@@ -15,18 +14,6 @@ export function activate(context: vscode.ExtensionContext) {
 		const codelldb = vscode.extensions.getExtension('vadimcn.vscode-lldb');
 		if (codelldb && analyzer && breakpoints.length > 0) {
 		   return  vscode.commands.executeCommand('rust-analyzer.debug', editor.document.uri);
-		}
-		let filePath = editor.document.uri.fsPath;
-		// Check if the file is a rust script
-		if (isRustScript(filePath)) {
-			let rustScript = runRustScript(filePath);
-			let terminal = vscode.window.activeTerminal;
-			if (!terminal) {
-				terminal = vscode.window.createTerminal(`Cargo Run Terminal`);
-			}
-			terminal.sendText(rustScript!); // we know it's not null
-			terminal.show();
-			return;
 		}
 		const command = await exec();
 		if (command) {
@@ -53,9 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-		// Choose what arguments we would override
-		// run, test, bench, doctest , build
-		let context: string | null | undefined = await vscode.window.showQuickPick(['run', 'test', 'bench', 'doctest', 'build', 'env'], {
+		let context: string | null | undefined = await vscode.window.showQuickPick(['run', 'test', 'bench', 'build', 'env'], {
 			placeHolder: 'Choose what arguments context you would like to override.'
 		}).then(async (context) => {
 			if (context) {
@@ -65,7 +50,6 @@ export function activate(context: vscode.ExtensionContext) {
 		);
 
 		if (!context) {
-			vscode.window.showErrorMessage('No context selected.');
 			return;
 		}
 		// Open input box for user input

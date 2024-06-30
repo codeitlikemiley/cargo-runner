@@ -10,6 +10,12 @@ export function activate(context: vscode.ExtensionContext) {
 			vscode.window.showErrorMessage('No active editor found.');
 			return;
 		}
+		const breakpoints = vscode.debug.breakpoints;
+		const analyzer = vscode.extensions.getExtension('rust-lang.rust-analyzer');
+		const codelldb = vscode.extensions.getExtension('vadimcn.vscode-lldb');
+		if (codelldb && analyzer && breakpoints.length > 0) {
+		   return  vscode.commands.executeCommand('rust-analyzer.debug', editor.document.uri);
+		}
 		let filePath = editor.document.uri.fsPath;
 		// Check if the file is a rust script
 		if (isRustScript(filePath)) {
@@ -34,8 +40,8 @@ export function activate(context: vscode.ExtensionContext) {
 			let analyzer = vscode.extensions.getExtension('rust-lang.rust-analyzer');
 			if (analyzer) {
 				vscode.commands.executeCommand('rust-analyzer.run', editor.document.uri);
-			} else {
-				vscode.window.showInformationMessage('Cannot run.');
+			}else {
+                vscode.window.showErrorMessage('Please Install Rust Analyzer');
 			}
 		}
 	}));

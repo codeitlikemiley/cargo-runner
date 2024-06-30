@@ -66,7 +66,7 @@ Note: the file you wanna run must have a `fn main block`
 
 2. Place your cursor inside the `test block` you wanna run test
 
-3. Press <kbd>CMD</kbd>+<kbd>R</kbd> on  Cursor
+3. Press <kbd>CMD</kbd>+<kbd>R</kbd>
 
 Note: If `Cargo Nextest` is installed it would use that as default test runner instead of `cargo test`
 

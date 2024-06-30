@@ -10,12 +10,12 @@ function isFileInTestContext(): boolean {
     const document = editor.document;
     const cursorLine = editor.selection.active.line;
 
-    const pattern = /#\[(cfg\(test\)|(\w+::)?test|\w+_test)\]/g;
+    const pattern = /#\[(cfg\(test\)|(\w+::)?test|\w+_test)\]/;
     const functionPattern = /^\s*fn\s+test_/;
 
     // Check if the file contains any of the test indicators
     const fileText = document.getText();
-    if (pattern.test(fileText) === false) {
+    if (!pattern.test(fileText)) {
         console.log("No test indicator found in the file.");
         return false;
     }
@@ -24,7 +24,7 @@ function isFileInTestContext(): boolean {
     let openBraces = 0;
     for (let i = 0; i <= cursorLine; i++) {
         const lineText = document.lineAt(i).text;
-        if (pattern.test(lineText) === true || functionPattern.test(lineText)) {
+        if (pattern.test(lineText) || functionPattern.test(lineText)) {
             if (i === cursorLine) {
                 console.log(`Cursor is on a test indicator line: ${lineText}`);
                 return true;
@@ -33,14 +33,11 @@ function isFileInTestContext(): boolean {
             // Reset openBraces if a new context starts
             openBraces = 0;
             for (let j = i + 1; j <= cursorLine; j++) {
-                const lineText = document.lineAt(j).text;
-                openBraces += (lineText.match(/{/g) || []).length;
-                openBraces -= (lineText.match(/}/g) || []).length;
-
-                console.log(`Checking line ${j}: ${lineText}, openBraces: ${openBraces}`);
+                const innerLineText = document.lineAt(j).text;
+                openBraces += (innerLineText.match(/{/g) || []).length;
+                openBraces -= (innerLineText.match(/}/g) || []).length;
 
                 if (openBraces === 0 && j < cursorLine) {
-                    console.log("Exited test context before reaching cursor.");
                     break;
                 }
 

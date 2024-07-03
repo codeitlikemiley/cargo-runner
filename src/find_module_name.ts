@@ -1,3 +1,4 @@
+import path from 'path';
 import * as vscode from 'vscode';
 
 function findModuleName(filePath: string, insideModTest: boolean): string | undefined {
@@ -8,13 +9,21 @@ function findModuleName(filePath: string, insideModTest: boolean): string | unde
         return undefined;
     }
 
-    let modulePath = filePath.replace(new RegExp(`^.*\/(?:src|examples)\/`), '')
+    let modulePath = filePath.replace(new RegExp(`^.*\/(?:src|examples|bin)\/`), '')
         .replace(/\//g, ' ')
         .trim()
         .replace(/\s+/g, '::')
         .replace('.rs', '');
 
     modulePath = modulePath.replace(/::mod$/, '');
+
+    // Get the parent directory of the file
+    const parentDir = path.basename(path.dirname(filePath));
+
+    // Check if the parent directory is 'bin'
+    if (parentDir === 'bin') {
+        modulePath = '';
+    } 
 
     // if we are on lib.rs or main.rs we need to remove the module path
     if (modulePath === 'lib' || modulePath === 'main') {

@@ -2,6 +2,17 @@ import * as vscode from 'vscode';
 import addArgsToToml from './add_args_to_toml';
 import exec from './exec';
 
+function createAndExecuteTask(command: string) {
+    const task = new vscode.Task(
+        { type: 'shell' },
+        vscode.TaskScope.Workspace,
+        'Run Cargo Command',
+        'cargo-runner',
+        new vscode.ShellExecution(command)
+    );
+    vscode.tasks.executeTask(task);
+}
+
 export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(vscode.commands.registerCommand('cargo-runner.exec', async () => {
 		const editor = vscode.window.activeTextEditor;
@@ -17,12 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 		const command = await exec();
 		if (command) {
-			let terminal = vscode.window.activeTerminal;
-			if (!terminal) {
-				terminal = vscode.window.createTerminal(`Cargo Run Terminal`);
-			}
-			terminal.sendText(command);
-			terminal.show();
+			createAndExecuteTask(command);
 		} else {
 			let analyzer = vscode.extensions.getExtension('rust-lang.rust-analyzer');
 			if (analyzer) {

@@ -3,7 +3,7 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-## 1.4.3
+## 1.4.4
 - make running command vscode task
 ## 1.4.2
 - add support running test on bin/* folders

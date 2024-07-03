@@ -2,7 +2,48 @@ import * as vscode from 'vscode';
 import addArgsToToml from './add_args_to_toml';
 import exec from './exec';
 
+class CargoRunnerTaskProvider implements vscode.TaskProvider {
+    static cargoType: string = 'cargo-runner';
+
+    provideTasks(): vscode.ProviderResult<vscode.Task[]> {
+        // Define static tasks if needed
+        return [];
+    }
+
+    resolveTask(_task: vscode.Task): vscode.Task | undefined {
+        const command: string = _task.definition.command;
+        const title: string = _task.definition.title;
+        if (command) {
+            const task = new vscode.Task(
+                _task.definition,
+                vscode.TaskScope.Workspace,
+                title,
+                'cargo-runner',
+                new vscode.ShellExecution(command),
+                '$rustc'
+            );
+            return task;
+        }
+        return undefined;
+    }
+}
+
+function createAndExecuteTask(command: string) {
+    const task = new vscode.Task(
+        { type: 'cargo-runner', command },
+        vscode.TaskScope.Workspace,
+        command,
+        'cargo-runner',
+        new vscode.ShellExecution(command),
+        '$rustc'
+    );
+    vscode.tasks.executeTask(task);
+}
+
 export function activate(context: vscode.ExtensionContext) {
+	const taskProvider = vscode.tasks.registerTaskProvider(CargoRunnerTaskProvider.cargoType, new CargoRunnerTaskProvider());
+    context.subscriptions.push(taskProvider);
+	
 	context.subscriptions.push(vscode.commands.registerCommand('cargo-runner.exec', async () => {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
@@ -17,12 +58,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 		const command = await exec();
 		if (command) {
-			let terminal = vscode.window.activeTerminal;
-			if (!terminal) {
-				terminal = vscode.window.createTerminal(`Cargo Run Terminal`);
-			}
-			terminal.sendText(command);
-			terminal.show();
+			createAndExecuteTask(command);
 		} else {
 			let analyzer = vscode.extensions.getExtension('rust-lang.rust-analyzer');
 			if (analyzer) {

@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/codeitlikemiley/cargo-runner"
   },
-  "version": "1.4.2",
+  "version": "1.4.3",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -18,6 +18,25 @@
   "activationEvents": [],
   "main": "./dist/extension.js",
   "contributes": {
+    "taskDefinitions": [
+      {
+        "type": "cargo-runner",
+        "required": [
+          "command",
+          "title"
+        ],
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The cargo command to execute."
+          },
+          "title": {
+            "type": "string",
+            "description": "The title of the task."
+          }
+        }
+      }
+    ],
     "commands": [
       {
         "command": "cargo-runner.exec",

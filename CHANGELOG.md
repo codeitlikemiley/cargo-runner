@@ -3,6 +3,19 @@
 All notable changes to the "cargo-runner" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 1.4.5
+- support wide variety of test macro
+
+```sh
+#[test]
+#[tokio::test]
+#[test_log::test]
+#[test(tokio::test)]
+#[bench]
+#[test_env_log::test]
+#[any_test]
+#[test_any]
+```
 ## 1.4.4
 - make running command vscode task
 ## 1.4.2

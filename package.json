@@ -3,21 +3,78 @@
   "displayName": "Cargo Runner",
   "description": "10X Rust Developer Tool to Run, Build, or Test without Mental Overhead",
   "publisher": "masterustacean",
-  "icon": "images/icon.png",
+  "icon": "images/icon.jpg",
   "repository": {
     "type": "git",
     "url": "https://github.com/codeitlikemiley/cargo-runner"
   },
-  "version": "1.4.5",
+  "version": "2.0.0",
   "engines": {
     "vscode": "^1.85.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:rust"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Cargo Runner",
+      "properties": {
+        "cargoRunner.prioritySymbolKinds": {
+          "type": "array",
+          "default": [
+            "Function",
+            "Module",
+            "Class"
+          ],
+          "description": "Symbol kinds to prioritize for CodeLens actions",
+          "items": {
+            "type": "string",
+            "enum": [
+              "File",
+              "Module",
+              "Namespace",
+              "Package",
+              "Class",
+              "Method",
+              "Property",
+              "Field",
+              "Constructor",
+              "Enum",
+              "Interface",
+              "Function",
+              "Variable",
+              "Constant",
+              "String",
+              "Number",
+              "Boolean",
+              "Array",
+              "Object",
+              "Key",
+              "Null",
+              "EnumMember",
+              "Struct",
+              "Event",
+              "Operator",
+              "TypeParameter"
+            ]
+          }
+        },
+        "cargoRunner.logLevel": {
+          "type": "string",
+          "default": "debug",
+          "description": "Set the logging level for Cargo Runner",
+          "enum": [
+            "debug",
+            "info",
+            "error"
+          ]
+        }
+      }
+    },
     "taskDefinitions": [
       {
         "type": "cargo-runner",
@@ -39,7 +96,7 @@
     ],
     "commands": [
       {
-        "command": "cargo-runner.exec",
+        "command": "cargo.runner",
         "title": "Cargo Runner"
       },
       {
@@ -49,7 +106,7 @@
     ],
     "keybindings": [
       {
-        "command": "cargo-runner.exec",
+        "command": "cargo.runner",
         "key": "ctrl+r",
         "mac": "cmd+r",
         "when": "resourceFilename =~ /\\.(rs)$/ && editorTextFocus && editorLangId == rust && editorHasDefinitionProvider"

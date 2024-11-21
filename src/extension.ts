@@ -63,35 +63,25 @@ function buildCargoCommand(args: any, isNextest: boolean, nearestSymbol: vscode.
 	if (isTestCommand && isNextest && !isDoctestCommand) {
 		const packageArgs = args.cargoArgs.slice(1);
 		const testName = args.executableArgs?.[0];
-
 		const isModuleTest = nearestSymbol?.kind === vscode.SymbolKind.Module;
 
 		if (!testName) {
-            return [
-                'nextest',
-                'run',
-                ...packageArgs,
-                '--nocapture'
-            ];
-        }
+			return ['nextest', 'run', ...packageArgs, '--nocapture'];
+		}
 
 		const exactTestPattern = isModuleTest
 			? `-E 'test(/^${testName}::.*$/)'`
 			: `-E 'test(/^${testName}$/)'`;
 
-		return [
-			'nextest',
-			'run',
-			exactTestPattern,
-			...packageArgs,
-			'--nocapture'
-		];
-	} else if (isTestCommand) {
-		return [...args.cargoArgs, '--', ...(args.executableArgs || [])];
+		return ['nextest', 'run', exactTestPattern, ...packageArgs, '--nocapture'];
 	}
 
-	return [...args.cargoArgs, '--', ...(args.executableArgs || [])];
+	return [
+		...args.cargoArgs,
+		...(args.executableArgs?.length > 0 ? ['--', ...args.executableArgs] : [])
+	];
 }
+
 
 async function isCargoNextestInstalled(): Promise<boolean> {
 	const cargoHome = process.env.CARGO_HOME;
@@ -243,15 +233,28 @@ async function extractCodeLensesForSymbol(
 }
 
 async function handleFileCodeLenses(document: vscode.TextDocument): Promise<void> {
+    log('Attempting to retrieve file-level CodeLenses', 'debug');
+
     const fileCodeLenses = await vscode.commands.executeCommand<vscode.CodeLens[]>(
         'vscode.executeCodeLensProvider',
         document.uri
     );
 
+    log(`Total CodeLenses found: ${fileCodeLenses?.length || 0}`, 'debug');
+
     if (!fileCodeLenses || fileCodeLenses.length === 0) {
         showUserError('No file-level CodeLens actions found');
         return;
     }
+
+    // Log all CodeLens details for debugging
+    fileCodeLenses.forEach((lens, index) => {
+        log(`CodeLens [${index}]:`, 'debug');
+        log(`  - Title: ${lens.command?.title}`, 'debug');
+        log(`  - Command: ${lens.command?.command}`, 'debug');
+        log(`  - Line: ${lens.range.start.line}`, 'debug');
+        log(`  - Arguments: ${JSON.stringify(lens.command?.arguments)}`, 'debug');
+    });
 
     const fileTestAction = fileCodeLenses.find(lens => {
         const isFileTest = lens.range.start.line === 0 || lens.range.start.line === 1;
@@ -263,6 +266,11 @@ async function handleFileCodeLenses(document: vscode.TextDocument): Promise<void
         
         return isFileTest && isTestAction && isNotFunctionSpecific;
     });
+
+    if (!fileTestAction) {
+        showUserError('No file-level test action available');
+        return;
+    }
 
     if (fileTestAction?.command?.arguments?.[0]?.args) {
         const args = fileTestAction.command.arguments[0].args;
@@ -286,8 +294,7 @@ async function handleFileCodeLenses(document: vscode.TextDocument): Promise<void
         const cargoCommand = 'cargo';
         createAndExecuteTask(cargoCommand, parsedArgs);
     } else {
-        log('No file-level test action found', 'info');
-        showUserError('No file-level test action available');
+        showUserError('No file-level codelens action available');
     }
 }
 
@@ -341,15 +348,21 @@ async function executeAppropriateCodeLens(
 	nearestSymbol: vscode.DocumentSymbol,
 	documentUri: vscode.Uri
 ): Promise<void> {
+	log(`Executing CodeLens actions for symbol: ${nearestSymbol.name}`, 'debug');
+	log(`CodeLens actions: ${JSON.stringify(codeLenses)}`, 'debug');
+	
 	const debugAction = codeLenses.find(lens =>
 		lens.command?.title.toLowerCase().includes('debug'));
 	const testAction = codeLenses.find(lens =>
 		lens.command?.title.toLowerCase().includes('run test'));
 	const doctestAction = codeLenses.find(lens =>
 		lens.command?.title.toLowerCase().includes('doctest'));
+	const runAction = codeLenses.find(lens => 
+		lens.command?.command === 'rust-analyzer.debugSingle' && 
+		lens.command?.arguments?.[0]?.kind === 'cargo');
 
 	try {
-		if (hasBreakpoints) {
+		if (hasBreakpoints && debugAction?.command) {
 			const relevantBreakpoints = vscode.debug.breakpoints.filter(breakpoint => {
 				if (breakpoint instanceof vscode.SourceBreakpoint) {
 					const { location } = breakpoint;
@@ -376,16 +389,19 @@ async function executeAppropriateCodeLens(
 			}
 		}
 
-		const selectedAction = testAction || doctestAction;
+		// Prioritize actions: test, doctest, or run
+		const selectedAction = testAction || doctestAction || runAction;
 		if (selectedAction?.command?.arguments?.[0]?.args) {
 			const args = selectedAction.command.arguments[0].args;
 			const isNextest = await isCargoNextestInstalled();
 			const parsedArgs = buildCargoCommand(args, isNextest, nearestSymbol);
 
 			const cargoCommand = 'cargo';
+			log(`Executing cargo command: ${cargoCommand} ${parsedArgs.join(' ')}`, 'debug');
 			createAndExecuteTask(cargoCommand, parsedArgs);
 		} else {
-			log(`No valid test or doctest action found.`, 'info');
+			log(`No valid test, doctest, or run action found.`, 'info');
+			showUserError('No valid action found');
 		}
 	} catch (error) {
 		showUserError(`Error executing CodeLens action: ${error}`);

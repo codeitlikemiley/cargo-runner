@@ -371,11 +371,11 @@ async function executeCodelens(
 	let docLens = '▶︎ Run Doctest';
 	let debugLens = 'Debug';
 
-	const run = codeLenses.find(lens => lens.command?.title === runLens);
-	const bench = codeLenses.find(lens => lens.command?.title === benchLens);
-	const test = codeLenses.find(lens => lens.command?.title === testLens);
-	const doc = codeLenses.find(lens => lens.command?.title === docLens);
-	const debuggable = codeLenses.find(lens => lens.command?.title === debugLens);
+	const run: vscode.CodeLens | undefined = codeLenses.find(lens => lens.command?.title === runLens);
+	const bench: vscode.CodeLens | undefined = codeLenses.find(lens => lens.command?.title === benchLens);
+	const test: vscode.CodeLens | undefined = codeLenses.find(lens => lens.command?.title === testLens);
+	const doc: vscode.CodeLens | undefined = codeLenses.find(lens => lens.command?.title === docLens);
+	const debuggable: vscode.CodeLens | undefined = codeLenses.find(lens => lens.command?.title === debugLens);
 	const relevantBreakpoints = getRelevantBreakpoints(nearestSymbol, documentUri);
 
 	log(`Relevant breakpoints: ${JSON.stringify(relevantBreakpoints)}\n`, 'debug');
@@ -386,7 +386,6 @@ async function executeCodelens(
 	log(`debuggable: ${debuggable?.command?.title}\n`, 'debug');
 
 	const runner = run || test || doc || bench;
-
 
 	log(`Current Runner is ${runner?.command?.title}\n`, 'debug');
 

@@ -412,49 +412,8 @@ async function executeCodelens(
 		const testPattern = isModule
 			? `test(/^${nearestSymbol.name}::.*$/)`
 			: `test(/^${testName}$/)`;
-
-		if (
-			runner.command.arguments?.[0]?.args?.cargoArgs?.includes('--test') &&
-			runner.command.title === benchLens
-		) {
-			const cargoTomlPath = findCargoToml(documentUri.fsPath);
-			if (!cargoTomlPath) {
-				log('Cargo.toml not found in the workspace root', 'debug');
-			}
-
-			const cargo = getCargoToml(cargoTomlPath ?? '');
-			if (!cargo?.bench?.length) {
-				log('No benches found in Cargo.toml', 'debug');
-			} else {
-				const currentFilePath = path.resolve(documentUri.fsPath);
-				const matchingBench = cargo.bench.find(bench => {
-					const benchFilePath = path.resolve(
-						path.isAbsolute(bench.path) ? bench.path : path.join(path.dirname(cargoTomlPath ?? ''), bench.path)
-					);
-					return benchFilePath === currentFilePath;
-				});
-
-				if (!matchingBench) {
-					log(`No matching bench found for file: ${currentFilePath}`, 'debug');
-				} else {
-					const cargoArgs = runner.command.arguments[0].args.cargoArgs;
-
-					const testIndex = cargoArgs.indexOf('--test');
-					if (testIndex !== -1) {
-						cargoArgs.splice(testIndex, 2);
-					}
-
-					const packageIndex = cargoArgs.indexOf('--package');
-					if (packageIndex !== -1) {
-						cargoArgs.splice(packageIndex + 2, 0, '--bench', matchingBench.name);
-					}
-
-					log(`Selected bench: ${matchingBench.name}`, 'debug');
-				}
-			}
-		}
-
-
+        
+		handleCustomBench(runner,documentUri,benchLens);
 
 		runner.command.arguments[0].args.cargoArgs.push("-E");
 		runner.command.arguments[0].args.cargoArgs.push(testPattern);
@@ -473,6 +432,50 @@ async function executeCodelens(
 	vscode.commands.executeCommand(runner?.command?.command ?? 'rust-analyzer.runSingle', ...(runner?.command?.arguments || []));
 }
 
+function handleCustomBench(runner: vscode.CodeLens , documentUri: vscode.Uri, benchLens: string) {
+	if (
+		runner.command?.arguments?.[0]?.args?.cargoArgs?.includes('--test') &&
+		runner.command?.title === benchLens
+	) {
+		const cargoTomlPath = findCargoToml(documentUri.fsPath);
+		if (!cargoTomlPath) {
+			log('Cargo.toml not found in the workspace root', 'debug');
+			return;
+		}
+
+		const cargo = getCargoToml(cargoTomlPath ?? '');
+		if (!cargo?.bench?.length) {
+			log('No benches found in Cargo.toml', 'debug');
+			return;
+		}
+
+		const currentFilePath = path.resolve(documentUri.fsPath);
+		const matchingBench = cargo.bench.find(bench => {
+			const benchFilePath = path.resolve(
+				path.isAbsolute(bench.path) ? bench.path : path.join(path.dirname(cargoTomlPath ?? ''), bench.path)
+			);
+			return benchFilePath === currentFilePath;
+		});
+
+		if (!matchingBench) {
+			log(`No matching bench found for file: ${currentFilePath}`, 'debug');
+			return;
+		}
+
+		const cargoArgs = runner.command?.arguments[0].args.cargoArgs;
+		const testIndex = cargoArgs.indexOf('--test');
+		if (testIndex !== -1) {
+			cargoArgs.splice(testIndex, 2);
+		}
+
+		const packageIndex = cargoArgs.indexOf('--package');
+		if (packageIndex !== -1) {
+			cargoArgs.splice(packageIndex + 2, 0, '--bench', matchingBench.name);
+		}
+
+		log(`Selected bench: ${matchingBench.name}`, 'debug');
+	}
+}
 
 export function log(message: string, level: 'debug' | 'info' | 'error') {
 	const outputChannel = getOutputChannel();

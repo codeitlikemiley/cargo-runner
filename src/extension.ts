@@ -4,6 +4,8 @@ import * as vscode from 'vscode';
 import { getBenchmark } from './get_benchmark';
 import { findBenchmarkId } from './find_benchmark_id';
 import { getPackage } from './get_package';
+import { findCargoToml } from './find_cargo_toml';
+import getCargoToml from './get_cargo_toml';
 
 let globalOutputChannel: vscode.OutputChannel | null = null;
 
@@ -401,7 +403,7 @@ async function executeCodelens(
 
 	const isNextest = await isCargoNextestInstalled();
 
-	if (isNextest && runner?.command?.title === testLens && runner?.command?.arguments?.[0]?.args && runner?.command?.arguments?.[0]?.args.cargoArgs) {
+	if (isNextest && (runner?.command?.title === testLens || runner?.command?.title === benchLens) && runner?.command?.arguments?.[0]?.args && runner?.command?.arguments?.[0]?.args.cargoArgs) {
 		runner.command.arguments[0].args.cargoArgs = runner.command.arguments[0].args.cargoArgs.slice(1);
 		runner.command.arguments[0].args.cargoArgs.unshift('run');
 		runner.command.arguments[0].args.cargoArgs.unshift('nextest');
@@ -411,6 +413,49 @@ async function executeCodelens(
 		const testPattern = isModule
 			? `test(/^${nearestSymbol.name}::.*$/)`
 			: `test(/^${testName}$/)`;
+
+		if (
+			runner.command.arguments?.[0]?.args?.cargoArgs?.includes('--test') &&
+			runner.command.title === benchLens
+		) {
+			const cargoTomlPath = findCargoToml(documentUri.fsPath);
+			if (!cargoTomlPath) {
+				log('Cargo.toml not found in the workspace root', 'debug');
+			}
+
+			const cargo = getCargoToml(cargoTomlPath ?? '');
+			if (!cargo?.bench?.length) {
+				log('No benches found in Cargo.toml', 'debug');
+			} else {
+				const currentFilePath = path.resolve(documentUri.fsPath);
+				const matchingBench = cargo.bench.find(bench => {
+					const benchFilePath = path.resolve(
+						path.isAbsolute(bench.path) ? bench.path : path.join(path.dirname(cargoTomlPath ?? ''), bench.path)
+					);
+					return benchFilePath === currentFilePath;
+				});
+
+				if (!matchingBench) {
+					log(`No matching bench found for file: ${currentFilePath}`, 'debug');
+				} else {
+					const cargoArgs = runner.command.arguments[0].args.cargoArgs;
+
+					const testIndex = cargoArgs.indexOf('--test');
+					if (testIndex !== -1) {
+						cargoArgs.splice(testIndex, 2);
+					}
+
+					const packageIndex = cargoArgs.indexOf('--package');
+					if (packageIndex !== -1) {
+						cargoArgs.splice(packageIndex + 2, 0, '--bench', matchingBench.name);
+					}
+
+					log(`Selected bench: ${matchingBench.name}`, 'debug');
+				}
+			}
+		}
+
+
 
 		runner.command.arguments[0].args.cargoArgs.push("-E");
 		runner.command.arguments[0].args.cargoArgs.push(testPattern);
@@ -422,7 +467,7 @@ async function executeCodelens(
 		log(`cargo nextest command: ${JSON.stringify(runner.command.arguments[0].args.cargoArgs)}`, 'debug');
 	}
 
-	if(runner?.command?.title === benchLens && isModule && runner?.command?.arguments?.[0]?.args) {
+	if (runner?.command?.title === benchLens && isModule && runner?.command?.arguments?.[0]?.args) {
 		runner.command.arguments[0].args.executableArgs = [];
 	}
 

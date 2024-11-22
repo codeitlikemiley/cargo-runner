@@ -98,42 +98,27 @@ async function isCargoNextestInstalled(): Promise<boolean> {
 
 let config = loadConfiguration();
 
-class NoDocumentSymbol extends Error {
+class SymbolNotFound extends Error {
 	constructor(message: string) {
 		super(message);
-		this.name = 'NoDocumentSymbolError';
+		this.name = 'SymbolNotFound';
 	}
 }
 
-class NoRelatedSymbol extends Error {
+class NoRelatedSymbolFound extends Error {
 	constructor(message: string) {
 		super(message);
-		this.name = 'NoRelatedSymbolError';
+		this.name = 'NoRelatedSymbolFound';
 	}
 }
 
 
-class NoNearestSymbol extends Error {
+class CodelensNotFound extends Error {
 	constructor(message: string) {
 		super(message);
-		this.name = 'NoNearestSymbolError';
+		this.name = 'CodelensNotFound';
 	}
 }
-
-class NoCodelensActions extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = 'ExtractCodelensError';
-	}
-}
-
-class NoRelatedCodeLensesForSymbol extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = 'NoRelatedCodeLensesError';
-	}
-}
-
 
 export function activate(context: vscode.ExtensionContext) {
 	const taskProvider = vscode.tasks.registerTaskProvider(CargoRunnerTaskProvider.cargoType, new CargoRunnerTaskProvider());
@@ -150,23 +135,25 @@ export function activate(context: vscode.ExtensionContext) {
 		try {
 			const cursorPosition = activeEditor.selection.active;
 
-			const documentSymbols = await safelyGetDocumentSymbols(document);
+			const documentSymbols = await getSymbols(document);
 
-			const nearestSymbol = findNearestRelevantSymbol(documentSymbols, cursorPosition, config);
+			const nearestSymbol = findRelevantSymbol(documentSymbols, cursorPosition, config);
 
 			const codelens = await extractCodeLensesForSymbol(document, nearestSymbol);
 
 			await executeCodelens(codelens, nearestSymbol, document.uri);
 
 		} catch (error) {
-			if (error instanceof NoDocumentSymbol) {
+			if (error instanceof SymbolNotFound) {
 				log('No document symbols found', 'debug');
-			} else if (error instanceof NoNearestSymbol) {
-				await handleFileCodeLenses(document, filepath);
-			} else if (error instanceof NoCodelensActions) {
+			} else if (error instanceof NoRelatedSymbolFound) {
+				await handleFileCodelens(document, filepath);
+			} else if (error instanceof CodelensNotFound) {
 				log('No CodeLens actions found for symbol', 'debug');
-			} else if (error instanceof NoRelatedCodeLensesForSymbol) {
-				log('No Related CodeLenses found', 'debug');
+				const benchmark = await getBenchmark(filepath);
+				if (benchmark) {
+					run_benches(benchmark, document.uri.fsPath);
+				}
 			}
 			else {
 				handleUnexpectedError(error);
@@ -223,16 +210,12 @@ async function extractCodeLensesForSymbol(
 	document: vscode.TextDocument,
 	symbol: vscode.DocumentSymbol
 ): Promise<vscode.CodeLens[]> {
-	const allCodeLenses = await vscode.commands.executeCommand<vscode.CodeLens[]>(
+	const codelenses = await vscode.commands.executeCommand<vscode.CodeLens[]>(
 		'vscode.executeCodeLensProvider',
 		document.uri
 	);
 
-	if (!allCodeLenses) {
-		throw new NoCodelensActions("No Code lenses actions available");
-	}
-
-	const symbolRelatedCodeLenses = allCodeLenses.filter((lens) => {
+	const symbolRelatedCodeLenses = codelenses.filter((lens) => {
 		const lensStart = lens.range.start.line;
 		const symbolStart = symbol.range.start.line;
 		const symbolEnd = symbol.range.end.line;
@@ -242,7 +225,7 @@ async function extractCodeLensesForSymbol(
 
 	if (symbolRelatedCodeLenses.length === 0) {
 		log('Trying to get the file-level CodeLenses', 'debug');
-		throw new NoRelatedCodeLensesForSymbol("No Code lenses actions available");
+		throw new CodelensNotFound("No Code lenses actions available");
 	}
 
 	log(`Found codelenses for symbol: ${symbol.name} \n ${JSON.stringify(symbolRelatedCodeLenses)}\n\n \t END of codelenses`, 'debug');
@@ -280,12 +263,7 @@ async function run_benches(name: string, filePath: string) {
 }
 
 
-async function handleFileCodeLenses(document: vscode.TextDocument, filepath: string): Promise<void> {
-
-	const benchmark = await getBenchmark(filepath);
-	if (benchmark) {
-		run_benches(benchmark, document.uri.fsPath);
-	}
+async function handleFileCodelens(document: vscode.TextDocument, filepath: string): Promise<void> {
 
 	const fileCodeLenses = await vscode.commands.executeCommand<vscode.CodeLens[]>(
 		'vscode.executeCodeLensProvider',
@@ -301,19 +279,11 @@ async function handleFileCodeLenses(document: vscode.TextDocument, filepath: str
 	});
 
 	const fileTestAction = fileCodeLenses.find(lens => {
-		const isFileTest = lens.range.start.line === 0 || lens.range.start.line === 1;
-		const isTestAction = lens.command?.title.toLowerCase().includes('run test') ||
-			lens.command?.title.toLowerCase().includes('test');
-
-		const isNotFunctionSpecific = !lens.command?.title.toLowerCase().includes('get_count') &&
-			!lens.command?.title.toLowerCase().includes('doctest');
-
-		return isFileTest && isTestAction && isNotFunctionSpecific;
+		const isTopLevelAction = lens.range.start.line === 0 || lens.range.start.line === 1;
+		const isTest = lens.command?.title === '▶︎ Run Tests';
+		const isRun = lens.command?.title === '▶︎ Run ';
+		return isTopLevelAction && (isTest || isRun);
 	});
-
-	if (!fileTestAction) {
-		throw new Error('No file-level test action available');
-	}
 
 	if (fileTestAction?.command?.arguments?.[0]?.args) {
 		const args = fileTestAction.command.arguments[0].args;
@@ -336,8 +306,6 @@ async function handleFileCodeLenses(document: vscode.TextDocument, filepath: str
 		const parsedArgs = buildCargoCommand(args, isNextest, fileSymbol);
 		const cargoCommand = 'cargo';
 		createAndExecuteTask(cargoCommand, parsedArgs);
-	} else {
-		throw new Error('No file-level CodeLens action available');
 	}
 }
 
@@ -443,20 +411,20 @@ function handleUnexpectedError(error: unknown) {
 	log(`[CRITICAL ERROR] ${errorMessage}`, 'error');
 }
 
-async function safelyGetDocumentSymbols(document: vscode.TextDocument): Promise<vscode.DocumentSymbol[]> {
+async function getSymbols(document: vscode.TextDocument): Promise<vscode.DocumentSymbol[]> {
 	const symbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
 		'vscode.executeDocumentSymbolProvider',
 		document.uri
 	) ?? [];
 
 	if (symbols.length === 0) {
-		throw new NoDocumentSymbol('No document symbols found');
+		throw new SymbolNotFound('No document symbols found');
 	}
 	log(`Document Symbols: ${JSON.stringify(symbols)}`, 'debug');
 	return symbols;
 }
 
-function findNearestRelevantSymbol(
+function findRelevantSymbol(
 	symbols: vscode.DocumentSymbol[],
 	position: vscode.Position,
 	config: CargoRunnerConfig
@@ -477,7 +445,7 @@ function findNearestRelevantSymbol(
 
 	const relevantSymbol = findSymbol(symbols);
 	if (!relevantSymbol) {
-		throw new NoNearestSymbol('No relevant symbol found near the cursor');
+		throw new NoRelatedSymbolFound('No relevant symbol found near the cursor');
 	}
 	log(`Found nearest symbol: ${relevantSymbol.name}`, 'debug');
 	return relevantSymbol;

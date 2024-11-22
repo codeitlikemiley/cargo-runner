@@ -325,9 +325,9 @@ async function handleFileCodelens(document: vscode.TextDocument, filepath: strin
 		return isTopLevelAction && isDebug;
 	});
 
-	const hasBreakpoints = getRelevantBreakpoints(currentFileSymbol, document.uri);
+	const relavantBreakpoints = getRelevantBreakpoints(currentFileSymbol, document.uri);
 
-	if (hasBreakpoints.length > 0 && debuggable?.command?.title === 'Debug') {
+	if (relavantBreakpoints.length > 0 && debuggable?.command?.title === 'Debug') {
 		log(`Running Debugger on relevant breakpoint`, 'debug');
 		// TODO: inject here our custom config if we have define one
 		await vscode.commands.executeCommand(

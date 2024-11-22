@@ -3,7 +3,7 @@
 > Streamline your Rust development with Cargo Runner, a powerful tool that simplifies your workflow and enhances your productivity.
 
 
-![cover](images/icon.jpg)
+![cover](https://github.com/codeitlikemiley/cargo-runner/blob/v2/images/icon.jpg?raw=true)
 
 > No Unicorn and crab was harm during the creation of this tool.
 
@@ -234,6 +234,15 @@ RUST_BACKTRACE = "1"
 ```
 
 </details>
+
+#### 7. Override features on a specific context
+- open command palette and select `Cargo Runner: Override features`
+- type the context you want to override e.g. `run`
+- type the features e.g. `feature1,feature2`
+
+> NOTE: to remove all features, when prompted to enter the features, just press `enter` and it will remove all features
+
+
 
 #### 5. Download config from a remote url
 - open comamnd palette and select `Cargo Runner: Download config from a remote url`

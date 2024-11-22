@@ -14,6 +14,8 @@
 
 - **Rust Analyzer Integration** - all default commands are derived from rust-analyzer
 
+- **Cargo Toml Integration** - parse useful `Metadata`  from `Cargo.toml`
+
 - **Rust Crate: `cargo-nextest` Integration** (optional) - faster way to run tests with multiple threads
 
 - **Codelldb Debugger Integration** - to debug your code
@@ -23,10 +25,14 @@
 - **One Key to rule them all** - press <kbd>CMD</kbd>+<kbd>R</kbd> to run any command
 
 - **Generate Blueprint from a Command** - Parse the command `--help` to generate an entry in the `config.toml` for specific context
+
 - **Change Default Config for a Context** e.g. if you wanna override `cargo run` and replace it with `cargo leptos watch`
+
 - **On Demand Overriding of Params , Options and Env** - used for quick prototyping and testing of different features 
+
 - **Per Crate Override** - For simple overriding of params, options and env on `Cargo Workspace` level
 
+- **Download Config from a Remote Url** - Community Maintained Configs you can download to preset your `Cargo Runner Config`
 
 
 

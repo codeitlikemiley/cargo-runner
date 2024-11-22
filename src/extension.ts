@@ -154,17 +154,15 @@ export function activate(context: vscode.ExtensionContext) {
 
 			const nearestSymbol = findNearestRelevantSymbol(documentSymbols, cursorPosition, config);
 
-			const symbolCodeLenses = await extractCodeLensesForSymbol(document, nearestSymbol);
+			const codelens = await extractCodeLensesForSymbol(document, nearestSymbol);
 
-			const uniqueCodeLenses = filterUniqueCodeLenses(symbolCodeLenses, nearestSymbol);
-
-			await executeAppropriateCodeLens(uniqueCodeLenses, nearestSymbol, document.uri);
+			await executeCodelens(codelens, nearestSymbol, document.uri);
 
 		} catch (error) {
 			if (error instanceof NoDocumentSymbol) {
 				log('No document symbols found', 'debug');
 			} else if (error instanceof NoNearestSymbol) {
-				await handleFileCodeLenses(document,filepath);
+				await handleFileCodeLenses(document, filepath);
 			} else if (error instanceof NoCodelensActions) {
 				log('No CodeLens actions found for symbol', 'debug');
 			} else if (error instanceof NoRelatedCodeLensesForSymbol) {
@@ -246,6 +244,8 @@ async function extractCodeLensesForSymbol(
 		log('Trying to get the file-level CodeLenses', 'debug');
 		throw new NoRelatedCodeLensesForSymbol("No Code lenses actions available");
 	}
+
+	log(`Found codelenses for symbol: ${symbol.name} \n ${JSON.stringify(symbolRelatedCodeLenses)}\n\n \t END of codelenses`, 'debug');
 
 	return symbolRelatedCodeLenses;
 }
@@ -341,66 +341,17 @@ async function handleFileCodeLenses(document: vscode.TextDocument, filepath: str
 	}
 }
 
-function filterUniqueCodeLenses(codeLenses: vscode.CodeLens[], relevantSymbol: vscode.DocumentSymbol): vscode.CodeLens[] {
-	const seenCommands = new Set();
-	const filteredCodeLenses: vscode.CodeLens[] = [];
-
-	const isModuleSymbol = relevantSymbol.kind === vscode.SymbolKind.Module;
-
-	let addedRunTest = false;
-	let addedDebug = false;
-	let addedDoctest = false;
-
-	codeLenses.forEach((lens) => {
-		if (lens.command && !seenCommands.has(lens.command.title)) {
-			const commandTitle = lens.command.title.toLowerCase();
-
-			const isWithinSymbolScope =
-				lens.range.start.line >= relevantSymbol.range.start.line &&
-				lens.range.end.line <= relevantSymbol.range.end.line;
-
-			if (isModuleSymbol) {
-				if ((commandTitle.includes('run test') || commandTitle.includes('debug')) &&
-					(!addedRunTest || !addedDebug)) {
-					filteredCodeLenses.push(lens);
-					seenCommands.add(lens.command.title);
-					if (commandTitle.includes('run test')) { addedRunTest = true; }
-					if (commandTitle.includes('debug')) { addedDebug = true; }
-				}
-			} else {
-				if (isWithinSymbolScope &&
-					(commandTitle.includes('run test') || commandTitle.includes('debug') || commandTitle.includes('doctest')) &&
-					(!addedRunTest || !addedDebug || !addedDoctest)) {
-
-					filteredCodeLenses.push(lens);
-					seenCommands.add(lens.command.title);
-					if (commandTitle.includes('run test')) { addedRunTest = true; }
-					if (commandTitle.includes('debug')) { addedDebug = true; }
-					if (commandTitle.includes('doctest')) { addedDoctest = true; }
-				}
-			}
-		}
-	});
-
-	return filteredCodeLenses;
-}
-
-async function executeAppropriateCodeLens(
+async function executeCodelens(
 	codeLenses: vscode.CodeLens[],
 	nearestSymbol: vscode.DocumentSymbol,
 	documentUri: vscode.Uri
 ): Promise<void> {
-	logCodeLensDetails(codeLenses);
 
-	const debugAction = codeLenses.find(lens =>
-		lens.command?.title.toLowerCase().includes('debug'));
-	const testAction = codeLenses.find(lens =>
-		lens.command?.title.toLowerCase().includes('run test'));
-	const doctestAction = codeLenses.find(lens =>
-		lens.command?.title.toLowerCase().includes('doctest'));
-	const runAction = codeLenses.find(lens =>
-		lens.command?.command === 'rust-analyzer.debugSingle' &&
-		lens.command?.arguments?.[0]?.kind === 'cargo');
+	const run = codeLenses.find(lens => lens.command?.title === '▶︎ Run ');
+	const bench = codeLenses.find(lens => lens.command?.title === '▶︎ Run Bench');
+	const test = codeLenses.find(lens => lens.command?.title === '▶︎ Run Test');
+	const doc = codeLenses.find(lens => lens.command?.title === '▶︎ Run Doctest');
+	const debuggable = codeLenses.find(lens => lens.command?.title === 'Debug');
 
 	const relevantBreakpoints = vscode.debug.breakpoints.filter(breakpoint => {
 		if (breakpoint instanceof vscode.SourceBreakpoint) {
@@ -416,26 +367,54 @@ async function executeAppropriateCodeLens(
 		return false;
 	});
 
-	const noDebugActions = testAction || doctestAction || runAction;
+	log(`Relevant breakpoints: ${JSON.stringify(relevantBreakpoints)}\n`, 'debug');
+	log(`run: ${run?.command?.title}\n`, 'debug');
+	log(`bench: ${bench?.command?.title}\n`, 'debug');
+	log(`test: ${test?.command?.title}\n`, 'debug');
+	log(`doc: ${doc?.command?.title}\n`, 'debug');
+	log(`debuggable: ${debuggable?.command?.title}\n`, 'debug');
 
-	if (relevantBreakpoints.length > 0 && debugAction?.command) {
+	const runner = run || test || doc || bench;
+
+
+	log(`Current Runner is ${runner?.command?.title}\n`, 'debug');
+
+	if (relevantBreakpoints.length > 0 && debuggable?.command?.title === 'Debug') {
 		log(`Running Debugger on relevant breakpoint`, 'debug');
+		// TODO: inject here our custom config if we have define one
 		await vscode.commands.executeCommand(
-			debugAction.command.command,
-			...(debugAction.command.arguments || [])
+			debuggable.command.command,
+			...(debuggable.command.arguments || [])
 		);
 		return;
 	}
 
-	if (noDebugActions?.command?.arguments?.[0]?.args) {
-		const args = noDebugActions.command.arguments[0].args;
-		const isNextest = await isCargoNextestInstalled();
-		const parsedArgs = buildCargoCommand(args, isNextest, nearestSymbol);
 
-		const cargoCommand = 'cargo';
-		log(`Executing cargo command: ${cargoCommand} ${parsedArgs.join(' ')}`, 'debug');
-		createAndExecuteTask(cargoCommand, parsedArgs);
+	const isNextest = await isCargoNextestInstalled();
+
+	if (isNextest && runner?.command?.title === '▶︎ Run Test' && runner?.command?.arguments?.[0]?.args && runner?.command?.arguments?.[0]?.args.cargoArgs) {
+		runner.command.arguments[0].args.cargoArgs = runner.command.arguments[0].args.cargoArgs.slice(1);
+		runner.command.arguments[0].args.cargoArgs.unshift('run');
+		runner.command.arguments[0].args.cargoArgs.unshift('nextest');
+
+		const isModuleTest = nearestSymbol?.kind === vscode.SymbolKind.Module;
+
+		const testName = runner.command.arguments[0].args.executableArgs[0];
+
+		const testPattern = isModuleTest
+			? `test(/^${testName}::.*$/)`
+			: `test(/^${testName}$/)`;
+
+		runner.command.arguments[0].args.cargoArgs.push("-E");
+		runner.command.arguments[0].args.cargoArgs.push(testPattern);
+		runner.command.arguments[0].args.cargoArgs.push("--nocapture");
+
+		runner.command.arguments[0].args.executableArgs = [];
+		// TODO: inject here our custom config if we have define one
+
+		log(`cargo nextest command: ${JSON.stringify(runner.command.arguments[0].args.cargoArgs)}`, 'debug');
 	}
+	vscode.commands.executeCommand(runner?.command?.command ?? 'rust-analyzer.runSingle', ...(runner?.command?.arguments || []));
 }
 
 
@@ -473,6 +452,7 @@ async function safelyGetDocumentSymbols(document: vscode.TextDocument): Promise<
 	if (symbols.length === 0) {
 		throw new NoDocumentSymbol('No document symbols found');
 	}
+	log(`Document Symbols: ${JSON.stringify(symbols)}`, 'debug');
 	return symbols;
 }
 
@@ -499,20 +479,8 @@ function findNearestRelevantSymbol(
 	if (!relevantSymbol) {
 		throw new NoNearestSymbol('No relevant symbol found near the cursor');
 	}
+	log(`Found nearest symbol: ${relevantSymbol.name}`, 'debug');
 	return relevantSymbol;
-}
-
-function logCodeLensDetails(uniqueCodeLenses: vscode.CodeLens[]) {
-	uniqueCodeLenses.forEach((lens, index) => {
-		if (lens.command) {
-			log(`[${index + 1}] ${lens.command.title} - ${lens.command.command}`, 'debug');
-			if (lens.command.arguments) {
-				log(`    Arguments: ${JSON.stringify(lens.command.arguments)}`, 'debug');
-			}
-		} else {
-			log(`[${index + 1}] CodeLens command not resolved.`, 'debug');
-		}
-	});
 }
 
 export function deactivate() { }

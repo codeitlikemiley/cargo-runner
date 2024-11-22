@@ -12,27 +12,29 @@
 
 ## Features
 
-- **Rust Analyzer Integration** - all default commands are derived from rust-analyzer
+- [x] **Rust Analyzer Integration** - all default commands are derived from rust-analyzer
 
-- **Cargo Toml Integration** - parse useful `Metadata`  from `Cargo.toml`
+- [x] **Cargo Toml Integration** - parse useful `Metadata`  from `Cargo.toml`
 
-- **Rust Crate: `cargo-nextest` Integration** (optional) - faster way to run tests with multiple threads
+- [x] **Rust Crate: `cargo-nextest` Integration** (optional) - faster way to run tests with multiple threads
 
-- **Codelldb Debugger Integration** - to debug your code
+- [x] **Codelldb Debugger Integration** - to debug your code
 
-- **Custom CommandConfig** to override command on different context
+- [x] **Custom CommandConfig** to override command on different context
 
-- **One Key to rule them all** - press <kbd>CMD</kbd>+<kbd>R</kbd> to run any command
+- [x] **One Key to rule them all** - press <kbd>CMD</kbd>+<kbd>R</kbd> to run any command
 
-- **Generate Blueprint from a Command** - Parse the command `--help` to generate an entry in the `config.toml` for specific context
+> The following features requires , an external CLI to be installed
 
-- **Change Default Config for a Context** e.g. if you wanna override `cargo run` and replace it with `cargo leptos watch`
+- [ ] **Generate Blueprint from a Command** - Parse the command `--help` to generate an entry in the `config.toml` for specific context
 
-- **On Demand Overriding of Params , Options and Env** - used for quick prototyping and testing of different features 
+- [ ] **Change Default Config for a Context** e.g. if you wanna override `cargo run` and replace it with `cargo leptos watch`
 
-- **Per Crate Override** - For simple overriding of params, options and env on `Cargo Workspace` level
+- [ ] **On Demand Overriding of Params , Options and Env** - used for quick prototyping and testing of different features 
 
-- **Download Config from a Remote Url** - Community Maintained Configs you can download to preset your `Cargo Runner Config`
+- [ ] **Per Crate Override** - For simple overriding of params, options and env on `Cargo Workspace` level
+
+- [ ] **Download Config from a Remote Url** - Community Maintained Configs you can download to preset your `Cargo Runner Config`
 
 
 
@@ -70,6 +72,8 @@ Note:  Doc test only works with a crate-type of `lib`
 
 Note: This would only work if `codelldb` is installed.
 
+> **REMINDER:** You cannot **debug** any **benchmarks** or **doc-tests** , when you try to debug **benches** it would just run the **cargo bench**
+
 ### Bench
 
 1. With Criterion Crate
@@ -78,6 +82,9 @@ Note: This would only work if `codelldb` is installed.
 2. On Rust `nightly` version
 
 - Go to any tests/*.rs that has #[bench] attribute and press <kbd>CMD</kbd>+<kbd>R</kbd> 
+
+
+> **FEATURE** Supports `cargo-nextest` to run benchmarks
 
 
 

@@ -9,3 +9,4 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Uses `rust-analyzer`
 - Supports `cargo-nextest` integration tests
 - Uses `codelldb` debugger integration for debugging
+- Add custom benchmark support for criterion and cargo-nextest

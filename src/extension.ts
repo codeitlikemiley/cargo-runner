@@ -409,9 +409,13 @@ async function executeCodelens(
 
 		const testName = runner.command.arguments[0].args.executableArgs[0];
 
+		log(`testName: ${testName}`, "debug");
+
 		const testPattern = isModule
-			? `test(/^${nearestSymbol.name}::.*$/)`
+			? `test(/^${testName}::.*$/)`
 			: `test(/^${testName}$/)`;
+
+		log(`testPattern: ${testPattern}`, "debug");
         
 		handleCustomBench(runner,documentUri,benchLens);
 

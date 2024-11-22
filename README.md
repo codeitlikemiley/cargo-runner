@@ -28,7 +28,7 @@
 
 - [ ] **Generate Blueprint from a Command** - Parse the command `--help` to generate an entry in the `config.toml` for specific context
 
-- [ ] **Change Default Config for a Context** e.g. if you wanna override `cargo run` and replace it with `cargo leptos watch`
+- [ ] **Change Default Config for a Context** e.g. if you wanna override `cargo run` and replace it with `cargo leptos watch` or `cargo miri nextest run`
 
 - [ ] **On Demand Overriding of Params , Options and Env** - used for quick prototyping and testing of different features 
 

@@ -361,11 +361,19 @@ async function executeCodelens(
 	documentUri: vscode.Uri
 ): Promise<void> {
 
-	const run = codeLenses.find(lens => lens.command?.title === '▶︎ Run ');
-	const bench = codeLenses.find(lens => lens.command?.title === '▶︎ Run Bench');
-	const test = codeLenses.find(lens => lens.command?.title === '▶︎ Run Test');
-	const doc = codeLenses.find(lens => lens.command?.title === '▶︎ Run Doctest');
-	const debuggable = codeLenses.find(lens => lens.command?.title === 'Debug');
+	const isModule = nearestSymbol?.kind === vscode.SymbolKind.Module;
+
+	let testLens = isModule ? '▶︎ Run Tests' : '▶︎ Run Test';
+	let benchLens = '▶︎ Run Bench';
+	let runLens = '▶︎ Run ';
+	let docLens = '▶︎ Run Doctest';
+	let debugLens = 'Debug';
+
+	const run = codeLenses.find(lens => lens.command?.title === runLens);
+	const bench = codeLenses.find(lens => lens.command?.title === benchLens);
+	const test = codeLenses.find(lens => lens.command?.title === testLens);
+	const doc = codeLenses.find(lens => lens.command?.title === docLens);
+	const debuggable = codeLenses.find(lens => lens.command?.title === debugLens);
 	const relevantBreakpoints = getRelevantBreakpoints(nearestSymbol, documentUri);
 
 	log(`Relevant breakpoints: ${JSON.stringify(relevantBreakpoints)}\n`, 'debug');
@@ -393,17 +401,15 @@ async function executeCodelens(
 
 	const isNextest = await isCargoNextestInstalled();
 
-	if (isNextest && runner?.command?.title === '▶︎ Run Test' && runner?.command?.arguments?.[0]?.args && runner?.command?.arguments?.[0]?.args.cargoArgs) {
+	if (isNextest && runner?.command?.title === testLens && runner?.command?.arguments?.[0]?.args && runner?.command?.arguments?.[0]?.args.cargoArgs) {
 		runner.command.arguments[0].args.cargoArgs = runner.command.arguments[0].args.cargoArgs.slice(1);
 		runner.command.arguments[0].args.cargoArgs.unshift('run');
 		runner.command.arguments[0].args.cargoArgs.unshift('nextest');
 
-		const isModuleTest = nearestSymbol?.kind === vscode.SymbolKind.Module;
-
 		const testName = runner.command.arguments[0].args.executableArgs[0];
 
-		const testPattern = isModuleTest
-			? `test(/^${testName}::.*$/)`
+		const testPattern = isModule
+			? `test(/^${nearestSymbol.name}::.*$/)`
 			: `test(/^${testName}$/)`;
 
 		runner.command.arguments[0].args.cargoArgs.push("-E");
@@ -415,6 +421,11 @@ async function executeCodelens(
 
 		log(`cargo nextest command: ${JSON.stringify(runner.command.arguments[0].args.cargoArgs)}`, 'debug');
 	}
+
+	if(runner?.command?.title === benchLens && isModule && runner?.command?.arguments?.[0]?.args) {
+		runner.command.arguments[0].args.executableArgs = [];
+	}
+
 	vscode.commands.executeCommand(runner?.command?.command ?? 'rust-analyzer.runSingle', ...(runner?.command?.arguments || []));
 }
 

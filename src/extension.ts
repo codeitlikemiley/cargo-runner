@@ -150,9 +150,9 @@ export function activate(context: vscode.ExtensionContext) {
 				await handleFileCodelens(document, filepath);
 			} else if (error instanceof CodelensNotFound) {
 				log('No CodeLens actions found for symbol', 'debug');
-				const benchmark = await getBenchmark(filepath);
-				if (benchmark) {
-					run_benches(benchmark, document.uri.fsPath);
+				const criterion = await getBenchmark(filepath);
+				if (criterion) {
+					run_criterion(criterion, document.uri.fsPath);
 				}
 			}
 			else {
@@ -233,7 +233,7 @@ async function extractCodeLensesForSymbol(
 	return symbolRelatedCodeLenses;
 }
 
-async function run_benches(name: string, filePath: string) {
+async function run_criterion(name: string, filePath: string) {
 
 	const id = await findBenchmarkId();
 	const packageName = await getPackage(filePath);
@@ -242,10 +242,7 @@ async function run_benches(name: string, filePath: string) {
 	let idArg = id ? `-- ${JSON.stringify(id)}` : '';
 	let pkgArg = packageName ? `--package ${packageName}` : '';
 
-	// pass here the additional args from config
-	// if (cargo_runner_args?.bench) {
-	//     additionalArgs = cargo_runner_args?.bench;
-	// }
+	//TODO: pass here the additional args from config
 
 	let commandArray = [];
 
@@ -285,28 +282,22 @@ async function handleFileCodelens(document: vscode.TextDocument, filepath: strin
 		return isTopLevelAction && (isTest || isRun);
 	});
 
-	if (fileTestAction?.command?.arguments?.[0]?.args) {
-		const args = fileTestAction.command.arguments[0].args;
-		const isNextest = await isCargoNextestInstalled();
 
-		const fileSymbol = new vscode.DocumentSymbol(
-			'File',
-			'',
-			vscode.SymbolKind.File,
-			new vscode.Range(
-				new vscode.Position(0, 0),
-				new vscode.Position(Number.MAX_VALUE, Number.MAX_VALUE)
-			),
-			new vscode.Range(
-				new vscode.Position(0, 0),
-				new vscode.Position(Number.MAX_VALUE, Number.MAX_VALUE)
-			)
-		);
+	const isNextest = await isCargoNextestInstalled();
 
-		const parsedArgs = buildCargoCommand(args, isNextest, fileSymbol);
-		const cargoCommand = 'cargo';
-		createAndExecuteTask(cargoCommand, parsedArgs);
+	if (isNextest && fileTestAction?.command?.title === '▶︎ Run Tests' && fileTestAction?.command?.arguments?.[0]?.args && fileTestAction?.command?.arguments?.[0]?.args.cargoArgs) {
+		fileTestAction.command.arguments[0].args.cargoArgs = fileTestAction.command.arguments[0].args.cargoArgs.slice(1);
+		fileTestAction.command.arguments[0].args.cargoArgs.unshift('run');
+		fileTestAction.command.arguments[0].args.cargoArgs.unshift('nextest');
+
+		fileTestAction.command.arguments[0].args.cargoArgs.push("--nocapture");
+
+		fileTestAction.command.arguments[0].args.executableArgs = [];
+		// TODO: inject here our custom config if we have define one
+		log(`cargo nextest command: ${JSON.stringify(fileTestAction.command.arguments[0].args.cargoArgs)}`, 'debug');
 	}
+
+	vscode.commands.executeCommand(fileTestAction?.command?.command ?? '', ...(fileTestAction?.command?.arguments || []));
 }
 
 async function executeCodelens(

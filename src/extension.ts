@@ -233,6 +233,22 @@ async function extractCodeLensesForSymbol(
 	return symbolRelatedCodeLenses;
 }
 
+function getRelevantBreakpoints(symbol: vscode.DocumentSymbol, documentUri: vscode.Uri): vscode.Breakpoint[] {
+	return vscode.debug.breakpoints.filter(breakpoint => {
+		if (breakpoint instanceof vscode.SourceBreakpoint) {
+			const { location } = breakpoint;
+			const { start, end } = symbol.range;
+
+			return (
+				location.uri.toString() === documentUri.toString() &&
+				location.range.start.isAfterOrEqual(start) &&
+				location.range.end.isBeforeOrEqual(end)
+			);
+		}
+		return false;
+	});
+}
+
 async function run_criterion(name: string, filePath: string) {
 
 	const id = await findBenchmarkId();
@@ -259,6 +275,23 @@ async function run_criterion(name: string, filePath: string) {
 
 }
 
+function getCurrentFileSymbol(): vscode.DocumentSymbol {
+	return new vscode.DocumentSymbol(
+		'File',
+		'',
+		vscode.SymbolKind.File,
+		new vscode.Range(
+			new vscode.Position(0, 0),
+			new vscode.Position(Number.MAX_VALUE, Number.MAX_VALUE)
+		),
+		new vscode.Range(
+			new vscode.Position(0, 0),
+			new vscode.Position(Number.MAX_VALUE, Number.MAX_VALUE)
+		)
+	);
+
+}
+
 
 async function handleFileCodelens(document: vscode.TextDocument, filepath: string): Promise<void> {
 
@@ -266,6 +299,10 @@ async function handleFileCodelens(document: vscode.TextDocument, filepath: strin
 		'vscode.executeCodeLensProvider',
 		document.uri
 	);
+
+	const currentFileSymbol = getCurrentFileSymbol();
+
+	log(`Current File Symbol: ${JSON.stringify(currentFileSymbol)}`, 'debug');
 
 	fileCodeLenses.forEach((lens, index) => {
 		log(`CodeLens [${index}]:`, 'debug');
@@ -281,6 +318,24 @@ async function handleFileCodelens(document: vscode.TextDocument, filepath: strin
 		const isRun = lens.command?.title === '▶︎ Run ';
 		return isTopLevelAction && (isTest || isRun);
 	});
+
+	const debuggable = fileCodeLenses.find(lens => {
+		const isTopLevelAction = lens.range.start.line === 0 || lens.range.start.line === 1;
+		const isDebug = lens.command?.title === 'Debug';
+		return isTopLevelAction && isDebug;
+	});
+
+	const hasBreakpoints = getRelevantBreakpoints(currentFileSymbol, document.uri);
+
+	if (hasBreakpoints.length > 0 && debuggable?.command?.title === 'Debug') {
+		log(`Running Debugger on relevant breakpoint`, 'debug');
+		// TODO: inject here our custom config if we have define one
+		await vscode.commands.executeCommand(
+			debuggable.command.command,
+			...(debuggable.command.arguments || [])
+		);
+		return;
+	}
 
 
 	const isNextest = await isCargoNextestInstalled();
@@ -311,20 +366,7 @@ async function executeCodelens(
 	const test = codeLenses.find(lens => lens.command?.title === '▶︎ Run Test');
 	const doc = codeLenses.find(lens => lens.command?.title === '▶︎ Run Doctest');
 	const debuggable = codeLenses.find(lens => lens.command?.title === 'Debug');
-
-	const relevantBreakpoints = vscode.debug.breakpoints.filter(breakpoint => {
-		if (breakpoint instanceof vscode.SourceBreakpoint) {
-			const { location } = breakpoint;
-			const { start, end } = nearestSymbol.range;
-
-			return (
-				location.uri.toString() === documentUri.toString() &&
-				location.range.start.isAfterOrEqual(start) &&
-				location.range.end.isBeforeOrEqual(end)
-			);
-		}
-		return false;
-	});
+	const relevantBreakpoints = getRelevantBreakpoints(nearestSymbol, documentUri);
 
 	log(`Relevant breakpoints: ${JSON.stringify(relevantBreakpoints)}\n`, 'debug');
 	log(`run: ${run?.command?.title}\n`, 'debug');

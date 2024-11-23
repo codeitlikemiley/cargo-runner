@@ -1,204 +1,88 @@
-# VSCode Cargo Runner
+# Cargo Runner
 
-> **10X Rust Developer Tool to Run, Build, or Test without Mental Overhead**
+> Streamline your Rust development with Cargo Runner, a powerful tool that simplifies your workflow and enhances your productivity.
 
-![cover](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/cover.png?raw=true)
+![cover](https://github.com/codeitlikemiley/cargo-runner/blob/v2/images/icon.jpg?raw=true)
 
-Cargo Runner is a powerful and intuitive tool designed to streamline the development workflow for Rust programmers. It integrates seamlessly into your development environment, allowing you to execute essential tasks like running, building, and testing Rust projects with minimal effort and maximum efficiency.
+> No Unicorn and crab was harm during the creation of this tool.
+
+## Requirements
+
+- rust-analyzer
+- codelldb
+
+**NOTE**: if this are missing then the extension will not be loaded
 
 ## Features
 
-- **Context Aware Command Runner** : Just fire the Keystroke <kbd>CMD + R</kbd> let it do the magic of either doing cargo `run` | `build` | `test` | `bench`.
+- [x] **One Key to rule them all** - press <kbd>CMD</kbd>+<kbd>R</kbd> to run any command
 
-- **Makefile Integration**: Offers the ability to override Cargo run or Cargo build commands with a custom `Makefile`, providing more control and flexibility for complex build processes.
+- [x] **Rust Analyzer Integration** - all default commands are derived from rust-analyzer
 
-- **Enhanced Testing with Cargo-Nextest**: well-defined preset and integration to cargo-nextest command if it is installed it will replace the default `cargo test` command, if you need more power you can override arguments.
+- [x] **Cargo Toml Integration** - parse useful `Metadata`  from `Cargo.toml`
 
-- **Override Arguments** : Quickly Override Command Arguments on different context such as: `run` , `build`, `test`, `bench`  and `env` using <kbd>CMD + SHIFT +R </kbd>
+- [x] **Override $CARGO_HOME**  from vscode settings
 
-- **Codelldb Debugger Integration**: Automatically integrates with codelldb debugger for running Rust tests if there is a breakpoint.
+- [x] **Rust Crate: `cargo-nextest` Integration** (optional) - faster way to run tests with multiple threads
 
-- **Rust Analyzer Runnables Fallback**: Uses Rust Analyzer runnables if there is no supported context match, e.g., doc tests.
+- [x] **Codelldb Debugger Integration** - to debug your code
 
-- **Support Cargo Workspace** : Cargo runner works on simply rust project to complex Cargo workspace.
+## Use cases
 
-## Demo Screenshot
+### Run
 
-### Cargo Run 
+1. Run Main
 
-1. Go Inside any files that can be run :
+- Go to your `main.rs` file and press <kbd>CMD</kbd>+<kbd>R</kbd>
 
-    - `src/main.rs`
-    - `src/bin/*`
-    - `examples/*`
-    - any file declare as [[bin]] on Cargo.toml
+2. Other Binaries
 
-e.g.
+- Go to any `src/bin/*.rs` file or to any files declared as `[[bin]]` in `Cargo.toml` and press <kbd>CMD</kbd>+<kbd>R</kbd>
 
-```toml
-[[bin]] 
-path = "src/example.rs"
-name ="example"
-```
+3. Examples
 
-Note: the file you wanna run must have a `fn main block`
+- Go to any `examples/*.rs` file and press <kbd>CMD</kbd>+<kbd>R</kbd>
 
-2. Press <kbd>CMD</kbd>+<kbd>R</kbd>
+### Test
 
+- Go to any test file or mod tests or test function that has `#[test]` macro and press <kbd>CMD</kbd>+<kbd>R</kbd>
 
-![Run](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/run.png?raw=true)
+### Doc test
 
+Note:  Doc test only works with a crate-type of `lib`
 
----
-### Cargo Build
+- Go to any `function` or `module` or `struct` or `Enum` that has a rust code block with or without assertions and press <kbd>CMD</kbd>+<kbd>R</kbd>
 
+### Debugging
 
-1. Go to  Any `build.rs` file that has`fn main block`
+1. Binaries
 
-2. Press <kbd>CMD</kbd>+<kbd>R</kbd> on Cursor
+- Go to any binaries , add breakpoint and press <kbd>CMD</kbd>+<kbd>R</kbd>
 
-![Build](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/build.png?raw=true)
+2. Test
 
----
-### Cargo Test or Cargo Nextest (if installed) for specific test
+- Go to any `test fn` or `mod tests`  and press <kbd>CMD</kbd>+<kbd>R</kbd>
 
-1. Go to any file with `test block` supports  anykind of `test macro` e.g. #[test] or #[tokio::test]
+Note: This would only work if `codelldb` is installed.
 
-2. Place your cursor inside the `test block` you wanna run test
+> **REMINDER:** You cannot **debug** any **benchmarks** or **doc-tests** , when you try to debug **benches** it would just run the **cargo bench**
 
-3. Press <kbd>CMD</kbd>+<kbd>R</kbd>
+### Bench
 
-Note: If `Cargo Nextest` is installed it would use that as default test runner instead of `cargo test`
+1. On Rust `nightly` version
 
+- Go to any tests/*.rs that has #[bench] attribute and press <kbd>CMD</kbd>+<kbd>R</kbd>
 
-![Test](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/cargo-nextest.png?raw=true)
-
-
-### Debug Test 
-
-1. Add a breakpoint to any `test block`
-
-2. Place your cursor inside the `test block` that have that breakpoint
-
-3. Press <kbd>CMD</kbd>+<kbd>R</kbd>
-
-![Run](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/debug.png?raw=true)
-
-
-### Fallback Runner (using rust-analyzer) for running all test
-
-
-1. Place your cursor somewhere inside of a `mod test block`
-
-2. Press <kbd>CMD</kbd>+<kbd>R</kbd> 
-
-
-![fallback](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/fallback.png?raw=true)
-
-
-
-### Fallback Runner (using rust-analyzer) for running doc-test
-
-1. Place your cursor somewhere inside a `doc test block`
-
-2. Press <kbd>CMD</kbd>+<kbd>R</kbd> 
-
-
-![fallback](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/doc-test-fallback.png?raw=true)
-
-
-### Adding Command Arguments
-
-1. Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd>
-
-2. Choose context from any of the following options:
-    - run
-    - build
-    - test
-    - bench
-    - env
-
-3. Type those parameters you wanna add to override the default 
-
-e.g. choose:  `env`
-
-4. Type on the user input the args you wanna pass as override argument
-
-e.g.
-```sh
-RUSTFLAGS="-Awarnings"
-```
-
-> Note: `.cargo_runner.toml` would be created per create , you can have multiple `.cargo_runner.toml` on workspace
-
-
-> Important: You may wanna add this to `.gitignore` file
-
-
-### Removing Command Arguments
-
-1. Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd>
-
-2. Choose context from any of the following options:
-    - run
-    - build
-    - test
-    - bench
-    - env
-
-3. Press Enter (dont type anything)
-
-This would remove the parameters `RUSTFLAGS="-Awarnings"` on .`cargo_runner.toml` file
-
-
----
-
-## Advanced Features
-
-<details>
-<summary> Custom Build Scripts with Makefile.</summary>
-
-Create a Makefile on Rust project, you can have multiple Makefile if your working with Cargo Workspace
-The choice is yours
-
-![Makefile](https://github.com/codeitlikemiley/cargo-runner/blob/main/images/makefile.png?raw=true)
-
-below is example makefile , you can add to you project to test 
-
-```
-# Makefile for a Rust project using cargo-leptos and cargo-nextest
-
-# Default target
-.PHONY: all
-all: build
-
-# Build target
-.PHONY: build
-build:
-	cargo build --package REPLACE_WITH_YOUR_PACKAGE_NAME
-
-.PHONY: run
-run:
-	cargo run --package REPLACE_WITH_YOUR_PACKAGE_NAME --bin REPLACE_WITH_YOUR_BIN_NAME
-
-# Test target
-.PHONY: test
-test:
-	cargo test
-
-# Clean up
-.PHONY: clean
-clean:
-	cargo clean
-```
-</details>
-
-
+> **FEATURE** Supports `cargo-nextest` to run benchmarks
 
 ## [License](./LICENSE)
 
 ## [Changelog](./CHANGELOG.md)
 
----
+### Support me
 
-By providing a comprehensive and user-friendly tool, Cargo Runner aims to significantly enhance the productivity and efficiency of Rust developers. 
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-💖-pink)](https://github.com/sponsors/codeitlikemiley)
+
+If you think I help you in anyway, and want to help me keep doing what I love, the best way to say thank you is to sponsor me on GitHub.
+
+---

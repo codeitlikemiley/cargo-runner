@@ -15,7 +15,7 @@
 
 ## Features
 
-- [x] **One Key to rule them all** - press <kbd>CMD</kbd>+<kbd>R</kbd> to run any command
+- [x] **One Key to rule them all** - press <kbd>CMD</kbd>+<kbd>R</kbd> to run any command. (can be re-mapped in keyboard shortcuts)
 
 - [x] **Rust Analyzer Integration** - all default commands are derived from rust-analyzer
 

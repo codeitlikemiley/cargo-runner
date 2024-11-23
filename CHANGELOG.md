@@ -4,7 +4,7 @@ All notable changes to the "cargo-runner" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## 1.4.6
+## 1.4.7
 - Check for missing extensions prior to loading the extension
 - Removed `.cargo_runner.toml` and ability to override args
 - Removed `Makefile` integration to override commands

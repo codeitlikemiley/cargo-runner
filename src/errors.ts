@@ -36,9 +36,16 @@ class RunnerNotFound extends Error {
 	}
 }
 
+class MissingExtension extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = 'MissingExtension';
+	}
+}
+
 function handleUnexpectedError(error: unknown) {
 	const errorMessage = error instanceof Error ? error.message : String(error);
 	vscode.window.showErrorMessage(`Cargo Runner Error: ${errorMessage}`);
 	log(`[ERROR] ${errorMessage}`, 'error');
 }
-export { SymbolNotFound, NoRelevantSymbol, CodelensNotFound, NoActiveEditor, RunnerNotFound, handleUnexpectedError };
+export { SymbolNotFound, NoRelevantSymbol, CodelensNotFound, NoActiveEditor, RunnerNotFound,MissingExtension, handleUnexpectedError };

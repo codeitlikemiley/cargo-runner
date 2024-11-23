@@ -1,14 +1,14 @@
 {
   "name": "cargo-runner",
   "displayName": "Cargo Runner",
-  "description": "10X Rust Developer Tool to Run, Build, or Test without Mental Overhead",
+  "description": "#1 Rust Productivity Tool to quickly run , test, debug and bench your Rust project.",
   "publisher": "masterustacean",
   "icon": "images/icon.jpg",
   "repository": {
     "type": "git",
     "url": "https://github.com/codeitlikemiley/cargo-runner"
   },
-  "version": "2.0.0",
+  "version": "1.4.6",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -84,10 +84,6 @@
       {
         "command": "cargo.runner",
         "title": "Cargo Runner"
-      },
-      {
-        "command": "cargo-runner.addArgs",
-        "title": "Add Cargo Runner Args"
       }
     ],
     "keybindings": [
@@ -96,12 +92,6 @@
         "key": "ctrl+r",
         "mac": "cmd+r",
         "when": "resourceFilename =~ /\\.(rs)$/ && editorTextFocus && editorLangId == rust && editorHasDefinitionProvider"
-      },
-      {
-        "command": "cargo-runner.addArgs",
-        "key": "ctrl+shift+r",
-        "mac": "cmd+shift+r",
-        "when": "editorTextFocus && editorLangId == rust"
       }
     ]
   },

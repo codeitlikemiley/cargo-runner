@@ -2,9 +2,9 @@ import * as path from 'path';
 import { findCargoToml } from './find_cargo_toml';
 import getCargoToml from './get_cargo_toml';
 import { getPackage } from './get_package';
-import { log } from './extension';
+import { log } from './logger';
 
-
+// TODO: unused
 async function getBenchmark(filePath: string): Promise<string | null> {
 
     const cargoTomlPath = findCargoToml(filePath);

@@ -1,7 +1,7 @@
-import { parse } from "@iarna/toml";
-import CargoToml from "./cargo_toml_type";
+import { parse } from '@iarna/toml';
+import CargoToml from './cargo_toml_type';
 import * as fs from 'fs';
-import { log } from "./extension";
+import { log } from './logger';
 
 export default  function getCargoToml(filePath: string): CargoToml | null {
     try {

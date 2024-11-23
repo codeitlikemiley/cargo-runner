@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
-import { log } from './extension';
+import { log } from './logger';
 
+// TODO: unused
 async function findBenchmarkId() : Promise<string | null | undefined>{
   const editor = vscode.window.activeTextEditor;
 

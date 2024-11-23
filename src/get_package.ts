@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { log } from './extension';
+import { log } from './logger';
 
+// TODO: unused
 async function getPackage(filePath: string): Promise<string | null> {
     let currentPath = filePath;
     let rootPath = vscode.workspace.rootPath;

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-/// TODO: Unused
+// TODO: Unused
 function buildCargoCommand(args: any, isNextest: boolean, nearestSymbol: vscode.DocumentSymbol): string[] {
 	const isTestCommand = args.cargoArgs?.includes('test') || args.cargoArgs?.includes('--test');
 	const isDoctestCommand = args.cargoArgs?.includes('--doc');

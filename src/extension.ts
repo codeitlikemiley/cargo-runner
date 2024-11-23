@@ -30,23 +30,9 @@ export function activate(context: vscode.ExtensionContext) {
 					break;
 				case NoRelevantSymbol.name:
 					log(NoRelevantSymbol.name, "debug");
-					// await handleFileCodelens();
 					break;
 				case CodelensNotFound.name:
-					//TODO: Perform Special Cases 
-					// 1. If is a main.rs file, run the main function
-					// 2. If is a lib.rs file, run all the tests
-					// 3. If file is located in /src/bin/, run the main function
-					// 4. If file is located in /examples/, run the main function
-					// 5. If file is located in /tests/, run the tests
-					// 6. If file is located in /benches/, run the benches
-
-					log(CodelensNotFound.name, "debug");
-					// below is an example of the special case for handing benchmarks functios with criterion
-					// const criterion = await getBenchmark(getFilePath());
-					// if (criterion) {
-					// 	run_criterion(criterion);
-					// }
+					log(CodelensNotFound.name, "debug");	
 					break;
 				case RunnerNotFound.name:
 					log(RunnerNotFound.name, "debug");

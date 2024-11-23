@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 
 import { CodelensNotFound, handleUnexpectedError, NoActiveEditor, NoRelevantSymbol, RunnerNotFound, SymbolNotFound } from './errors';
 import { CargoRunnerTaskProvider } from './tasks';
-import { log } from './logger';
+import { getOutputChannel, log } from './logger';
 import codelensExec from './codelens_exec';
 import getRelevantSymbol from './get_relevant_symbol';
 import getCodelenses from './get_codelens';
@@ -11,7 +11,8 @@ import workspaceConfig from './workspace_config';
 let config = workspaceConfig();
 
 export function activate(context: vscode.ExtensionContext) {
-	log(`Activating cargo-runner`, 'debug');
+	
+	const outputChannel = getOutputChannel();
 
 	const taskProvider = vscode.tasks.registerTaskProvider(CargoRunnerTaskProvider.cargoType, new CargoRunnerTaskProvider());
 
@@ -32,7 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
 					log(NoRelevantSymbol.name, "debug");
 					break;
 				case CodelensNotFound.name:
-					log(CodelensNotFound.name, "debug");	
+					log(CodelensNotFound.name, "debug");
 					break;
 				case RunnerNotFound.name:
 					log(RunnerNotFound.name, "debug");
@@ -43,6 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	context.subscriptions.push(outputChannel);
 
 	context.subscriptions.push(taskProvider);
 
@@ -53,4 +55,4 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 }
 
-export function deactivate() {}
+export function deactivate() { }

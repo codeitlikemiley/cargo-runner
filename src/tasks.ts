@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 
+
+// TODO: unused
 class CargoRunnerTaskProvider implements vscode.TaskProvider {
 	static cargoType: string = 'cargo-runner';
 
@@ -26,6 +28,7 @@ class CargoRunnerTaskProvider implements vscode.TaskProvider {
 	}
 }
 
+// TODO: unused
 function createAndExecuteTask(command: string, args: string[]) {
 	const fullCommand = [command, ...args].join(' ');
 	const task = new vscode.Task(

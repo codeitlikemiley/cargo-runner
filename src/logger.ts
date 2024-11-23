@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import vscodeConfig from './workspace_config';
+import workspaceConfig from './workspace_config';
 
-export let globalOutputChannel: vscode.OutputChannel | null = null;
+let globalOutputChannel: vscode.OutputChannel | null = null;
 
 function getOutputChannel(): vscode.OutputChannel {
 	if (!globalOutputChannel) {
@@ -10,9 +10,9 @@ function getOutputChannel(): vscode.OutputChannel {
 	return globalOutputChannel;
 }
 
- function log(message: string, level: 'debug' | 'info' | 'error') {
+function log(message: string, level: 'debug' | 'info' | 'error') {
 	const outputChannel = getOutputChannel();
-    let config = vscodeConfig();
+	let config = workspaceConfig();
 
 	const logLevels = {
 		'debug': 0,
@@ -25,4 +25,4 @@ function getOutputChannel(): vscode.OutputChannel {
 	}
 }
 
-export {log , getOutputChannel};
+export { log, getOutputChannel };

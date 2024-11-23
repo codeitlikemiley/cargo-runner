@@ -27,31 +27,19 @@
           "type": "array",
           "default": [
             "Function",
-            "Method",
             "Enum",
             "Struct",
-            "Class",
             "Object",
-            "Interface",
-            "Module",
-            "Package",
-            "Namespace",
-            "File"
+            "Module"
           ],
           "description": "Symbol kinds to prioritize for CodeLens actions",
           "items": {
             "type": "string",
             "enum": [
-              "File",
-              "Namespace",
-              "Package",
               "Module",
-              "Interface",
               "Object",
-              "Class",
               "Struct",
               "Enum",
-              "Method",
               "Function"
             ]
           }
@@ -65,6 +53,11 @@
             "info",
             "error"
           ]
+        },
+        "cargoRunner.cargoHome": {
+          "type": "string",
+          "default": "",
+          "description": "Path to Cargo home directory. If not set, defaults to CARGO_HOME environment variable or ~/.cargo"
         }
       }
     },

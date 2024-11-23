@@ -27,39 +27,32 @@
           "type": "array",
           "default": [
             "Function",
+            "Method",
+            "Enum",
+            "Struct",
+            "Class",
+            "Object",
+            "Interface",
             "Module",
-            "Class"
+            "Package",
+            "Namespace",
+            "File"
           ],
           "description": "Symbol kinds to prioritize for CodeLens actions",
           "items": {
             "type": "string",
             "enum": [
               "File",
-              "Module",
               "Namespace",
               "Package",
-              "Class",
-              "Method",
-              "Property",
-              "Field",
-              "Constructor",
-              "Enum",
+              "Module",
               "Interface",
-              "Function",
-              "Variable",
-              "Constant",
-              "String",
-              "Number",
-              "Boolean",
-              "Array",
               "Object",
-              "Key",
-              "Null",
-              "EnumMember",
+              "Class",
               "Struct",
-              "Event",
-              "Operator",
-              "TypeParameter"
+              "Enum",
+              "Method",
+              "Function"
             ]
           }
         },

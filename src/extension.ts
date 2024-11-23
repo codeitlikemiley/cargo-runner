@@ -6,6 +6,7 @@ import { findBenchmarkId } from './find_benchmark_id';
 import { getPackage } from './get_package';
 import { findCargoToml } from './find_cargo_toml';
 import getCargoToml from './get_cargo_toml';
+import { get } from 'http';
 
 let globalOutputChannel: vscode.OutputChannel | null = null;
 
@@ -107,10 +108,10 @@ class SymbolNotFound extends Error {
 	}
 }
 
-class NoRelatedSymbolFound extends Error {
+class NoRelevantSymbol extends Error {
 	constructor(message: string) {
 		super(message);
-		this.name = 'NoRelatedSymbolFound';
+		this.name = 'NoRelevantSymbol';
 	}
 }
 
@@ -122,42 +123,59 @@ class CodelensNotFound extends Error {
 	}
 }
 
+class NoActiveEditor extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = 'NoActiveEditor';
+	}
+}
+
+function getActiveEditor(): vscode.TextEditor {
+	const activeEditor = vscode.window.activeTextEditor;
+	if (!activeEditor) {
+		throw new NoActiveEditor('No active editor found');
+	}
+	return activeEditor;
+}
+
+function cursorPosition(): vscode.Position {
+	return getActiveEditor().selection.active;
+}
+
+function getDocument(): vscode.TextDocument {
+	return getActiveEditor().document;
+}
+
+function getFilePath(): string {
+	return getDocument().uri.fsPath;
+}
+
 export function activate(context: vscode.ExtensionContext) {
 	const taskProvider = vscode.tasks.registerTaskProvider(CargoRunnerTaskProvider.cargoType, new CargoRunnerTaskProvider());
 	context.subscriptions.push(taskProvider);
 
 	const command = vscode.commands.registerCommand('cargo.runner', async () => {
-		const activeEditor = vscode.window.activeTextEditor;
-		if (!activeEditor) {
-			showUserError('No active editor found');
-			return;
-		}
-		const document = activeEditor.document;
-		const filepath = document.uri.fsPath;
 		try {
-			const cursorPosition = activeEditor.selection.active;
-
-			const documentSymbols = await getSymbols(document);
-
-			const nearestSymbol = findRelevantSymbol(documentSymbols, cursorPosition, config);
-
-			const codelens = await extractCodeLensesForSymbol(document, nearestSymbol);
-
-			await executeCodelens(codelens, nearestSymbol, document.uri);
-
-		} catch (error) {
-			if (error instanceof SymbolNotFound) {
-				log('No document symbols found', 'debug');
-			} else if (error instanceof NoRelatedSymbolFound) {
-				await handleFileCodelens(document, filepath);
-			} else if (error instanceof CodelensNotFound) {
-				log('No CodeLens actions found for symbol', 'debug');
-				const criterion = await getBenchmark(filepath);
-				if (criterion) {
-					run_criterion(criterion, document.uri.fsPath);
+			const relevantSymbol = await getRelevantSymbol();
+			const codelens = await getCodelenses(relevantSymbol);
+			await executeCodelens(codelens);
+		} catch (error: unknown) {
+			if (typeof error === "object" && error !== null && "name" in error) {
+				switch ((error as { name: string }).name) {
+					case "NoRelatedSymbol":
+						await handleFileCodelens();
+						break;
+					case "CodelensNotFound":
+						const criterion = await getBenchmark(getFilePath());
+						if (criterion) {
+							run_criterion(criterion);
+						}
+						break;
+					default:
+						handleUnexpectedError(error);
 				}
-			}
-			else {
+			} else {
+				// Handle non-object or unexpected errors
 				handleUnexpectedError(error);
 			}
 		}
@@ -175,46 +193,30 @@ function loadConfiguration(): CargoRunnerConfig {
 	const config = vscode.workspace.getConfiguration('cargoRunner');
 	const symbolKindMap: Record<string, vscode.SymbolKind> = {
 		File: vscode.SymbolKind.File,
-		Module: vscode.SymbolKind.Module,
 		Namespace: vscode.SymbolKind.Namespace,
 		Package: vscode.SymbolKind.Package,
-		Class: vscode.SymbolKind.Class,
-		Method: vscode.SymbolKind.Method,
-		Property: vscode.SymbolKind.Property,
-		Field: vscode.SymbolKind.Field,
-		Constructor: vscode.SymbolKind.Constructor,
-		Enum: vscode.SymbolKind.Enum,
+		Module: vscode.SymbolKind.Module,
 		Interface: vscode.SymbolKind.Interface,
-		Function: vscode.SymbolKind.Function,
-		Variable: vscode.SymbolKind.Variable,
-		Constant: vscode.SymbolKind.Constant,
-		String: vscode.SymbolKind.String,
-		Number: vscode.SymbolKind.Number,
-		Boolean: vscode.SymbolKind.Boolean,
-		Array: vscode.SymbolKind.Array,
 		Object: vscode.SymbolKind.Object,
-		Key: vscode.SymbolKind.Key,
-		Null: vscode.SymbolKind.Null,
-		EnumMember: vscode.SymbolKind.EnumMember,
+		Class: vscode.SymbolKind.Class,
 		Struct: vscode.SymbolKind.Struct,
-		Event: vscode.SymbolKind.Event,
-		Operator: vscode.SymbolKind.Operator,
-		TypeParameter: vscode.SymbolKind.TypeParameter,
+		Enum: vscode.SymbolKind.Enum,
+		Method: vscode.SymbolKind.Method,
+		Function: vscode.SymbolKind.Function,
 	};
 	return {
-		prioritySymbolKinds: config.get<string[]>('prioritySymbolKinds', ['Function', 'Module', 'Class']).map(kind => symbolKindMap[kind]),
+		prioritySymbolKinds: config.get<string[]>('prioritySymbolKinds', ['File', 'Namespace', 'Package', 'Module', 'Interface', 'Object', 'Class', 'Struct', 'Enum', 'Method', 'Function']).map(kind => symbolKindMap[kind]),
 		logLevel: config.get('logLevel', 'info')
 	};
 }
 
 
-async function extractCodeLensesForSymbol(
-	document: vscode.TextDocument,
+async function getCodelenses(
 	symbol: vscode.DocumentSymbol
 ): Promise<vscode.CodeLens[]> {
 	const codelenses = await vscode.commands.executeCommand<vscode.CodeLens[]>(
 		'vscode.executeCodeLensProvider',
-		document.uri
+		getDocument().uri
 	);
 
 	const symbolRelatedCodeLenses = codelenses.filter((lens) => {
@@ -235,14 +237,14 @@ async function extractCodeLensesForSymbol(
 	return symbolRelatedCodeLenses;
 }
 
-function getRelevantBreakpoints(symbol: vscode.DocumentSymbol, documentUri: vscode.Uri): vscode.Breakpoint[] {
+function getRelevantBreakpoints(symbol: vscode.DocumentSymbol): vscode.Breakpoint[] {
 	return vscode.debug.breakpoints.filter(breakpoint => {
 		if (breakpoint instanceof vscode.SourceBreakpoint) {
 			const { location } = breakpoint;
 			const { start, end } = symbol.range;
 
 			return (
-				location.uri.toString() === documentUri.toString() &&
+				location.uri.toString() === getDocument().uri.toString() &&
 				location.range.start.isAfterOrEqual(start) &&
 				location.range.end.isBeforeOrEqual(end)
 			);
@@ -251,10 +253,10 @@ function getRelevantBreakpoints(symbol: vscode.DocumentSymbol, documentUri: vsco
 	});
 }
 
-async function run_criterion(name: string, filePath: string) {
+async function run_criterion(name: string) {
 
 	const id = await findBenchmarkId();
-	const packageName = await getPackage(filePath);
+	const packageName = await getPackage(getFilePath());
 	let cargoCmd = "bench";
 	let benchArg = `--bench ${name}`;
 	let idArg = id ? `-- ${JSON.stringify(id)}` : '';
@@ -295,16 +297,29 @@ function getCurrentFileSymbol(): vscode.DocumentSymbol {
 }
 
 
-async function handleFileCodelens(document: vscode.TextDocument, filepath: string): Promise<void> {
+async function handleFileCodelens(): Promise<void> {
 
 	const fileCodeLenses = await vscode.commands.executeCommand<vscode.CodeLens[]>(
 		'vscode.executeCodeLensProvider',
-		document.uri
+		getDocument().uri
 	);
 
-	const currentFileSymbol = getCurrentFileSymbol();
+	const docsymbols = await getSymbols();
 
-	log(`Current File Symbol: ${JSON.stringify(currentFileSymbol)}`, 'debug');
+	const fileSymbol = docsymbols.find(symbol => {
+		const isMainFile = getFilePath().endsWith('main.rs');
+		const isBinFile = getFilePath().includes('/src/bin/');
+		const isExampleFile = getFilePath().includes('/examples/');
+		const isTestFile = getFilePath().includes('/tests/');
+
+		if ((isMainFile || isBinFile || isExampleFile) && symbol.name === 'main' || isTestFile) {
+			return true;
+		}
+
+		return false;
+	});
+
+	log(`Current File Symbol: ${JSON.stringify(fileSymbol)}`, 'debug');
 
 	fileCodeLenses.forEach((lens, index) => {
 		log(`CodeLens [${index}]:`, 'debug');
@@ -315,10 +330,16 @@ async function handleFileCodelens(document: vscode.TextDocument, filepath: strin
 	});
 
 	const fileTestAction = fileCodeLenses.find(lens => {
-		const isTopLevelAction = lens.range.start.line === 0 || lens.range.start.line === 1;
 		const isTest = lens.command?.title === '▶︎ Run Tests';
 		const isRun = lens.command?.title === '▶︎ Run ';
-		return isTopLevelAction && (isTest || isRun);
+		const isMainFile = getFilePath().endsWith('main.rs');
+		const isTestFile = getFilePath().includes('/tests/');
+		const isExampleFile = getFilePath().includes('/examples/');
+		const isBinFile = getFilePath().includes('/src/bin/');
+		const isBecnhFile = getFilePath().includes('/benches/');
+
+		// Only consider top-level actions in main.rs or integration test files
+		return isRun && (isMainFile || isExampleFile || isBinFile) || (isTest && isTestFile) || (isBecnhFile);
 	});
 
 	const debuggable = fileCodeLenses.find(lens => {
@@ -327,7 +348,11 @@ async function handleFileCodelens(document: vscode.TextDocument, filepath: strin
 		return isTopLevelAction && isDebug;
 	});
 
-	const relavantBreakpoints = getRelevantBreakpoints(currentFileSymbol, document.uri);
+	if (!fileSymbol) {
+		return;
+	}
+
+	const relavantBreakpoints = getRelevantBreakpoints(fileSymbol);
 
 	if (relavantBreakpoints.length > 0 && debuggable?.command?.title === 'Debug') {
 		log(`Running Debugger on relevant breakpoint`, 'debug');
@@ -353,17 +378,29 @@ async function handleFileCodelens(document: vscode.TextDocument, filepath: strin
 		// TODO: inject here our custom config if we have define one
 		log(`cargo nextest command: ${JSON.stringify(fileTestAction.command.arguments[0].args.cargoArgs)}`, 'debug');
 	}
-
 	vscode.commands.executeCommand(fileTestAction?.command?.command ?? '', ...(fileTestAction?.command?.arguments || []));
+}
+
+function buildTestPattern(nearestSymbol: vscode.DocumentSymbol, testName: string, isModule: boolean): string {
+	if (isModule) {
+		return `test(/^${nearestSymbol.name}::.*$/)`;
+	}
+
+	const symbolIndex = testName.lastIndexOf(nearestSymbol.name);
+	if (symbolIndex === -1) {
+		return `test(/^${testName}$/)`;
+	}
+
+	const pathUpToSymbol = testName.substring(0, symbolIndex + nearestSymbol.name.length);
+	return `test(/^${pathUpToSymbol}$/)`;
 }
 
 async function executeCodelens(
 	codeLenses: vscode.CodeLens[],
-	nearestSymbol: vscode.DocumentSymbol,
-	documentUri: vscode.Uri
 ): Promise<void> {
 
-	const isModule = nearestSymbol?.kind === vscode.SymbolKind.Module;
+	const nearestSymbol = await getRelevantSymbol();
+	const isModule = nearestSymbol?.kind === vscode.SymbolKind.Module || nearestSymbol?.kind === vscode.SymbolKind.Struct;
 
 	let testLens = isModule ? '▶︎ Run Tests' : '▶︎ Run Test';
 	let benchLens = '▶︎ Run Bench';
@@ -376,7 +413,7 @@ async function executeCodelens(
 	const test: vscode.CodeLens | undefined = codeLenses.find(lens => lens.command?.title === testLens);
 	const doc: vscode.CodeLens | undefined = codeLenses.find(lens => lens.command?.title === docLens);
 	const debuggable: vscode.CodeLens | undefined = codeLenses.find(lens => lens.command?.title === debugLens);
-	const relevantBreakpoints = getRelevantBreakpoints(nearestSymbol, documentUri);
+	const relevantBreakpoints = getRelevantBreakpoints(nearestSymbol);
 
 	log(`Relevant breakpoints: ${JSON.stringify(relevantBreakpoints)}\n`, 'debug');
 	log(`run: ${run?.command?.title}\n`, 'debug');
@@ -388,6 +425,10 @@ async function executeCodelens(
 	const runner = run || test || doc || bench;
 
 	log(`Current Runner is ${runner?.command?.title}\n`, 'debug');
+
+	if (!runner) {
+		throw new CodelensNotFound("No Code lenses actions available");
+	}
 
 	if (relevantBreakpoints.length > 0 && debuggable?.command?.title === 'Debug') {
 		log(`Running Debugger on relevant breakpoint`, 'debug');
@@ -402,7 +443,7 @@ async function executeCodelens(
 
 	const isNextest = await isCargoNextestInstalled();
 
-	if (isNextest && (runner?.command?.title === testLens || runner?.command?.title === benchLens) && runner?.command?.arguments?.[0]?.args && runner?.command?.arguments?.[0]?.args.cargoArgs) {
+	if (isNextest && (runner.command?.title === testLens || runner.command?.title === benchLens) && runner.command.arguments?.[0]?.args && runner.command.arguments?.[0]?.args.cargoArgs) {
 		runner.command.arguments[0].args.cargoArgs = runner.command.arguments[0].args.cargoArgs.slice(1);
 		runner.command.arguments[0].args.cargoArgs.unshift('run');
 		runner.command.arguments[0].args.cargoArgs.unshift('nextest');
@@ -411,13 +452,11 @@ async function executeCodelens(
 
 		log(`testName: ${testName}`, "debug");
 
-		const testPattern = isModule
-			? `test(/^${testName}::.*$/)`
-			: `test(/^${testName}$/)`;
+		const testPattern = buildTestPattern(nearestSymbol, testName, isModule);
 
 		log(`testPattern: ${testPattern}`, "debug");
-        
-		handleCustomBench(runner,documentUri,benchLens);
+
+		handleCustomBench(runner);
 
 		runner.command.arguments[0].args.cargoArgs.push("-E");
 		runner.command.arguments[0].args.cargoArgs.push(testPattern);
@@ -429,19 +468,19 @@ async function executeCodelens(
 		log(`cargo nextest command: ${JSON.stringify(runner.command.arguments[0].args.cargoArgs)}`, 'debug');
 	}
 
-	if (runner?.command?.title === benchLens && isModule && runner?.command?.arguments?.[0]?.args) {
+	if (runner.command?.title === benchLens && isModule && runner.command.arguments?.[0]?.args) {
 		runner.command.arguments[0].args.executableArgs = [];
 	}
 
 	vscode.commands.executeCommand(runner?.command?.command ?? 'rust-analyzer.runSingle', ...(runner?.command?.arguments || []));
 }
 
-function handleCustomBench(runner: vscode.CodeLens , documentUri: vscode.Uri, benchLens: string) {
+function handleCustomBench(runner: vscode.CodeLens) {
 	if (
 		runner.command?.arguments?.[0]?.args?.cargoArgs?.includes('--test') &&
-		runner.command?.title === benchLens
+		runner.command?.title === "▶︎ Run Bench"
 	) {
-		const cargoTomlPath = findCargoToml(documentUri.fsPath);
+		const cargoTomlPath = findCargoToml(getDocument().uri.fsPath);
 		if (!cargoTomlPath) {
 			log('Cargo.toml not found in the workspace root', 'debug');
 			return;
@@ -453,7 +492,7 @@ function handleCustomBench(runner: vscode.CodeLens , documentUri: vscode.Uri, be
 			return;
 		}
 
-		const currentFilePath = path.resolve(documentUri.fsPath);
+		const currentFilePath = path.resolve(getDocument().uri.fsPath);
 		const matchingBench = cargo.bench.find(bench => {
 			const benchFilePath = path.resolve(
 				path.isAbsolute(bench.path) ? bench.path : path.join(path.dirname(cargoTomlPath ?? ''), bench.path)
@@ -495,21 +534,19 @@ export function log(message: string, level: 'debug' | 'info' | 'error') {
 	}
 }
 
-function showUserError(message: string) {
-	vscode.window.showErrorMessage(message);
-	log(`[ERROR] ${message}`, 'info');
-}
-
 function handleUnexpectedError(error: unknown) {
 	const errorMessage = error instanceof Error ? error.message : String(error);
 	vscode.window.showErrorMessage(`Cargo Runner Error: ${errorMessage}`);
-	log(`[CRITICAL ERROR] ${errorMessage}`, 'error');
+	log(`[ERROR] ${errorMessage}`, 'error');
 }
 
-async function getSymbols(document: vscode.TextDocument): Promise<vscode.DocumentSymbol[]> {
+
+
+async function getSymbols(): Promise<vscode.DocumentSymbol[]> {
+	log(`Doc uri: ${getDocument().uri.toString()}`, 'debug');
 	const symbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
 		'vscode.executeDocumentSymbolProvider',
-		document.uri
+		getDocument().uri
 	) ?? [];
 
 	if (symbols.length === 0) {
@@ -519,31 +556,40 @@ async function getSymbols(document: vscode.TextDocument): Promise<vscode.Documen
 	return symbols;
 }
 
-function findRelevantSymbol(
-	symbols: vscode.DocumentSymbol[],
-	position: vscode.Position,
-	config: CargoRunnerConfig
-): vscode.DocumentSymbol {
+async function getRelevantSymbol(): Promise<vscode.DocumentSymbol> {
+	const config = loadConfiguration();
+	const position = cursorPosition();
+	const symbols = await getSymbols();
 	const isPositionWithinRange = (pos: vscode.Position, range: vscode.Range) =>
 		pos.isAfterOrEqual(range.start) && pos.isBeforeOrEqual(range.end);
 
+	const isPositionInSymbol = (pos: vscode.Position, symbol: vscode.DocumentSymbol) =>
+		isPositionWithinRange(pos, symbol.range) || isPositionWithinRange(pos, symbol.selectionRange);
+
+	symbols.forEach(symbol => {
+		log(`Symbol: ${symbol.name}, Kind: ${symbol.kind}, Range: (${symbol.range.start.line}-${symbol.range.end.line})`, 'debug');
+		symbol.children.forEach(child => {
+			log(`  Child: ${child.name}, Kind: ${child.kind}, Range: (${child.range.start.line}-${child.range.end.line})`, 'debug');
+		});
+	});
+
 	const findSymbol = (symbols: vscode.DocumentSymbol[]): vscode.DocumentSymbol | null => {
 		for (const symbol of symbols) {
-			if (config.prioritySymbolKinds.includes(symbol.kind) &&
-				isPositionWithinRange(position, symbol.range)) {
+			if (config.prioritySymbolKinds.includes(symbol.kind) && isPositionInSymbol(position, symbol)) {
 				const childSymbol = findSymbol(symbol.children);
 				return childSymbol || symbol;
 			}
 		}
-		return null;
+		return symbols.find(symbol => symbol.name === 'main') ?? null;
 	};
 
+
 	const relevantSymbol = findSymbol(symbols);
-	if (!relevantSymbol) {
-		throw new NoRelatedSymbolFound('No relevant symbol found near the cursor');
-	}
+	if (!relevantSymbol) { throw new NoRelevantSymbol('No relevant symbol found near the cursor'); }
+
 	log(`Found nearest symbol: ${relevantSymbol.name}`, 'debug');
 	return relevantSymbol;
 }
+
 
 export function deactivate() { }

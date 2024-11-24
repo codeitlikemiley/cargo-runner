@@ -4,7 +4,8 @@ All notable changes to the "cargo-runner" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## 1.4.7
+## 1.4.8
+- Better Documentation and examples on how to use the extension
 - Check for missing extensions prior to loading the extension
 - Removed `.cargo_runner.toml` and ability to override args
 - Removed `Makefile` integration to override commands
@@ -18,4 +19,4 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Uses `codelldb` debugger integration for debugging
 - Add ability to override $CARGO_HOME from vscode settings
 - Add ability to change log level from vscode settings
-- Add abilty to change priority symbol kinds from vscode settings (You wouldnt want to change it though as the default is already well tested)
+- Add ability to change priority symbol kinds from vscode settings (You wouldnt want to change it though as the default is already well tested)

@@ -15,7 +15,7 @@
 
 ## Features
 
-- [x] **One Key to rule them all** - press <kbd>CMD</kbd>+<kbd>R</kbd> to run any command
+- [x] **One Key to rule them all** - press <kbd>CMD</kbd>+<kbd>R</kbd> to run any command. (can be re-mapped in keyboard shortcuts)
 
 - [x] **Rust Analyzer Integration** - all default commands are derived from rust-analyzer
 
@@ -43,25 +43,72 @@
 
 - Go to any `examples/*.rs` file and press <kbd>CMD</kbd>+<kbd>R</kbd>
 
+> **NOTE**: **main() fn** would be the **fallback** scope on any file , if **main() fn** exists on that file, considering it as the parent module to run cargo commands on.
+
+> Even if your are on **main.rs** and you **don't have**  **main() fn** , it would'nt run any cargo commands on that file.
+
+This gives us the ability to run **cargo build** on any build.rs file even if `rust-analyzer` doesn't support it.
+
 ### Test
 
-- Go to any test file or mod tests or test function that has `#[test]` macro and press <kbd>CMD</kbd>+<kbd>R</kbd>
+1. Create a test 
+
+```rust
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
+    }
+
+    #[test]
+    fn it_works_too() {
+        assert_eq!(2 + 2, 4);
+    }
+}
+```
+
+NOTE: The scope varies , if your cursor is on the **scope outside** any **fn test** , it would then go up its **parent module** and run all the tests in that module. In the example above it would run all test on **mod tests** as its parent module.
+
+2.  Press <kbd>CMD</kbd>+<kbd>R</kbd> on any code block you want to run tests on
 
 ### Doc test
 
-Note:  Doc test only works with a crate-type of `lib`
+**WARNING**:  Doc test only works with a crate-type of `lib`
 
-- Go to any `function` or `module` or `struct` or `Enum` that has a rust code block with or without assertions and press <kbd>CMD</kbd>+<kbd>R</kbd>
+1. Add doc-test on a function e.g. `lib.rs`
+
+```rust
+///
+/// ```rust
+/// use common::add;
+/// assert_eq!(add(1, 2), 3);
+/// ```
+pub fn add(left: usize, right: usize) -> usize {
+    left + right
+}
+```
+
+> doc-test works on any **function** or **method**, **Struct** , **Enum** and **Union** that has doc-block and code block of `rust`
+
+NOTE: The scope varies , if you put your cursor on the **Struct** definition and that **Struct** has many doc-test on its **impl block** then it will run all of them. Same goes for **Enum** and **Union** .
+
+
+2. Press <kbd>CMD</kbd>+<kbd>R</kbd> to run `doc-tests`
+
 
 ### Debugging
 
-1. Binaries
+1. Add breakpoint on a rust file e.g. `main.rs` or any other rust file
 
-- Go to any binaries , add breakpoint and press <kbd>CMD</kbd>+<kbd>R</kbd>
+```rust
+fn main() {
+    println!("Hello, world!"); <!-- add break point here
+}
+```
 
-2. Test
 
-- Go to any `test fn` or `mod tests`  and press <kbd>CMD</kbd>+<kbd>R</kbd>
+2. Press <kbd>CMD</kbd>+<kbd>R</kbd> to debug the program
 
 Note: This would only work if `codelldb` is installed.
 
@@ -69,9 +116,45 @@ Note: This would only work if `codelldb` is installed.
 
 ### Bench
 
-1. On Rust `nightly` version
+1. set version of rust to `nightly`
 
-- Go to any tests/*.rs that has #[bench] attribute and press <kbd>CMD</kbd>+<kbd>R</kbd>
+```sh
+rustup override set nightly
+```
+
+2. Add to the root of the module e.g. `main.rs` 
+
+Root module means
+
+```rust
+#![feature(test)]
+extern crate test;
+```
+
+3. create a new bench fn
+
+```rust
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use test::Bencher;
+    use tokio::{runtime::Runtime, time::sleep};
+
+    #[bench]
+    fn bench_async_example(b: &mut Bencher) {
+        let runtime = Runtime::new().unwrap();
+
+        b.iter(|| {
+            runtime.block_on(async {
+                sleep(Duration::from_millis(5000)).await;
+                let x: u32 = (1..100).sum();
+                x
+            });
+        });
+    }
+}
+```
 
 > **FEATURE** Supports `cargo-nextest` to run benchmarks
 

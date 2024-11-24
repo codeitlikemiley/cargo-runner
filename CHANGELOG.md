@@ -4,7 +4,8 @@ All notable changes to the "cargo-runner" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## 1.4.9
+## 2.0.0
+- Use Rust Analyzer Config and Cargo.toml to override args
 - Better Documentation and examples on how to use the extension
 - Better Check for missing extensions prior to loading the extension
 - Removed `.cargo_runner.toml` and ability to override args

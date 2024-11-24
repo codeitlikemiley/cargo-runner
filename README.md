@@ -27,6 +27,8 @@
 
 - [x] **Codelldb Debugger Integration** - to debug your code
 
+- [x] **Rust Analyzer Config Integration** - share same rust-analyzer config across all rust-analyzer commands
+
 ## Use cases
 
 ### Run
@@ -157,6 +159,199 @@ mod tests {
 ```
 
 > **FEATURE** Supports `cargo-nextest` to run benchmarks
+
+
+
+### Rust Analyzer Config Integration
+
+1. Adding Cargo Arguments
+
+- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>P</kbd>
+
+- type `Cargo Runner: Cargo Args` and press <kbd>ENTER</kbd>
+
+- type all the args you want as you would normally do on the command line.
+
+e.g. `--release`
+
+It would be saved on your `settings.json`  as follows
+
+```json
+"rust-analyzer.runnables.extraArgs": [
+        "--release"
+],
+```
+
+The Next time you press <kbd>CMD</kbd>+<kbd>R</kbd> it would run the following command with the args you defined appended to the end.
+
+example command output:
+
+```sh
+cargo run --package codec --bin codec --no-default-features --release
+```
+
+2. Adding Test Binary Args
+
+- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>P</kbd>
+
+- type `Cargo Runner: Test Args` and press <kbd>ENTER</kbd>
+
+- type all the args you want as you would normally do on the command line.
+
+e.g. `--quiet --show-output --color=always --nocapture`
+
+It would be saved on your `settings.json`  as follows
+
+```json
+"rust-analyzer.runnables.extraTestBinaryArgs": [
+        "--quiet",
+        "--show-output",
+        "--color=always",
+        "--nocapture",
+],
+```
+
+This would be used for both `cargo test` and `cargo-nextest` when generating the command to run.
+
+
+example command output:
+```sh
+cargo test --package codec --bin codec -- tests::it_works --exact --quiet --show-output --color=always --nocapture
+```
+
+</br>
+
+> **NOTE**: To check the allowed args for `cargo test` run **cargo test -- --help** in your terminal.
+
+</br>
+
+> **NOTE** To check the allowed args for `cargo-nextest` run **cargo nextest run --help** in your terminal.
+
+</br>
+
+3. Adding ENV vars
+
+- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>P</kbd>
+
+- type `Cargo Runner: ENV Vars` and press <kbd>ENTER</kbd>
+
+- type all the env vars you want as you would normally do on the command line.
+
+e.g. `RUST_BACKTRACE=full RUST_LOG=debug`
+
+
+it would be saved on your `settings.json`  as follows
+
+```json
+"rust-analyzer.runnables.extraEnv": {
+        "RUST_BACKTRACE": "full",
+        "RUST_LOG": "debug"
+}
+```
+
+4. Adding Features
+
+- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>P</kbd>
+
+- type `Cargo Runner: Features` and press <kbd>ENTER</kbd>
+
+- type all the features you want as you would normally do on the command line.
+
+e.g. You can use any of the following formats
+
+- `example default no-default`
+- `example,default, no-default` 
+
+it would be saved on your `settings.json`  as follows
+
+```json
+"rust-analyzer.cargo.noDefaultFeatures": true,
+"rust-analyzer.cargo.features": [
+        "example",
+        "default"
+],
+```
+
+The next time you press <kbd>CMD</kbd>+<kbd>R</kbd> it would run the following command with the features you defined appended to the end.
+
+example command output:
+
+```sh
+cargo run --package codec --bin codec --features example --features default --no-default-features
+```
+
+**NOTE** : This is not recommended for workspaces setup as any features define here would also be applied to all crates in the workspace.
+
+For better control over features , check [Bonus](#bonus) section.
+
+5. Add Target
+
+- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>P</kbd>
+- type `Cargo Runner: Target` and press <kbd>ENTER</kbd>
+- type the target you want to use
+
+e.g. `wasm32-unknown-unknown`
+
+It would be saved on your `settings.json`  as follows
+
+`settings.json`
+```json
+{
+    "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+}
+```
+
+
+### Bonus
+
+1. Add rust-analyzer specific target directory **(OPTIONAL BUT RECOMMENDED)**
+
+- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>P</kbd>
+- type `Cargo Runner: Rust Analyzer Target Dir` and press <kbd>ENTER</kbd>
+
+
+It would be saved on your `settings.json`  as follows
+
+```json
+{
+"rust-analyzer.cargo.targetDir": true,
+}
+```
+
+This prevents rust-analyzer's cargo check and initial build-script and proc-macro building from locking the Cargo.lock at the expense of duplicating build artifacts.
+
+
+---
+
+2. Changing Required features **(Recommended)**
+
+Note: This would only work if you already defined your features on `Cargo.toml`
+
+- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>P</kbd>
+- type `Cargo Runner: Required Features` and press <kbd>ENTER</kbd>
+- Select from entries from  `examples`, `benches` , `src/bin` or `lib`  
+- Press <kbd>ENTER</kbd>
+- List of available features would be shown
+- select the features you want to require
+- Press <kbd>ENTER</kbd>
+
+
+It would update your `Cargo.toml`  as follows
+
+`Cargo.toml`
+```toml
+[[bin]]
+name = "codec"
+path = "src/main.rs"
+required-features = ["example"]
+
+[features]
+default = ["example"]
+example = []
+```
+
+Note the difference on using `required-features` and `features` from `rust-analyzer.cargo.features` is that you can specifically choose the specific `bin` or `lib` you want to require features for , unlike **overriding** the **rust-analyzer.cargo.features** which can take effect on all `bin` and `lib`.
+
 
 ## [License](./LICENSE)
 

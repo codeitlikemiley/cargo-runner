@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { log } from './logger';
-import { RunnerNotFound } from './errors';
+import { handleUnexpectedError, RunnerNotFound } from './errors';
 import getRelevantBreakpoints from './get_relevant_breakpoints';
 import testSymbolPattern from './test_symbol_pattern';
 import handleCustomBench from './handle_custom_bench';
@@ -8,6 +8,9 @@ import getRelevantSymbol from './get_relevant_symbol';
 import isCargoNextestInstalled from './is_nextest_installed';
 
 export default async function codelensExec(codeLenses: vscode.CodeLens[]): Promise<void> {
+	log(`Fetching rust analyzer config`, 'debug');
+	// NOTE: most of the rust-analyzer config are re-usable across all rust-analyzer commands
+	const rustAnalyzerConfig = vscode.workspace.getConfiguration("rust-analyzer");
 
 	const nearestSymbol = await getRelevantSymbol();
 	const isModule = nearestSymbol?.kind === vscode.SymbolKind.Module || nearestSymbol?.kind === vscode.SymbolKind.Struct;
@@ -53,33 +56,51 @@ export default async function codelensExec(codeLenses: vscode.CodeLens[]): Promi
 	const isNextest = await isCargoNextestInstalled();
 
 	if (isNextest && (runner.command?.title === testLens || runner.command?.title === benchLens) && runner.command.arguments?.[0]?.args && runner.command.arguments?.[0]?.args.cargoArgs) {
-		runner.command.arguments[0].args.cargoArgs = runner.command.arguments[0].args.cargoArgs.slice(1);
-		runner.command.arguments[0].args.cargoArgs.unshift('run');
-		runner.command.arguments[0].args.cargoArgs.unshift('nextest');
+		// replace subcommand of `test` with `nextest run`
+		runner.command.arguments[0].args.cargoArgs[0] = "run";
+		runner.command.arguments[0].args.cargoArgs.unshift("nextest");
 
+        // load extraArgs from config
+		let extraTestBinaryArgs = rustAnalyzerConfig.get<string[]>("runnables.extraTestBinaryArgs") || ["--nocapture"];
+		log(`extraTestBinaryArgs ${JSON.stringify(extraTestBinaryArgs)}`, "debug");
+
+		// testname is always the first element in the executableArgs
 		const testName = runner.command.arguments[0].args.executableArgs[0];
-
 		log(`testName: ${testName}`, "debug");
 
+        // correctly set the test pattern
 		const testPattern = testSymbolPattern(nearestSymbol, testName, isModule);
 
-		log(`testPattern: ${testPattern}`, "debug");
-
+		log(`: ${testPattern}`, "debug");
+		let testParams = ["-E", testPattern];
+        // add extra test binary args
+		runner.command.arguments[0].args.cargoArgs.push(...testParams);
+        
+		// for nightly bench do custom handling
 		handleCustomBench(runner);
-
-		runner.command.arguments[0].args.cargoArgs.push("-E");
-		runner.command.arguments[0].args.cargoArgs.push(testPattern);
-		runner.command.arguments[0].args.cargoArgs.push("--nocapture");
-
+	    // remove executable args as this is not supported by cargo-nextest	
 		runner.command.arguments[0].args.executableArgs = [];
-		// TODO: inject here our custom config if we have define one
-
-		log(`cargo nextest command: ${JSON.stringify(runner.command.arguments[0].args.cargoArgs)}`, 'debug');
+        
+		// remove conflicting args from extraTestBinaryArgs only for cargo-nextest
+		const argsToFilter = ["--show-output", "--quiet", "--exact"];
+		extraTestBinaryArgs = [...extraTestBinaryArgs.filter(arg => !argsToFilter.includes(arg))];
+        // add extraTestBinaryArgs to cargoArgs
+		runner.command.arguments[0].args.cargoArgs.push(...extraTestBinaryArgs);
 	}
 
 	if (runner.command?.title === benchLens && isModule && runner.command.arguments?.[0]?.args) {
 		runner.command.arguments[0].args.executableArgs = [];
 	}
 
-	vscode.commands.executeCommand(runner?.command?.command ?? 'rust-analyzer.runSingle', ...(runner?.command?.arguments || []));
+	log(`${runner?.command?.command} command: ${JSON.stringify(runner?.command?.arguments?.[0].args.cargoArgs)} ${JSON.stringify(runner?.command?.arguments?.[0].args.executableArgs)}`, 'debug');
+
+	log(`arguments: ${JSON.stringify(runner?.command?.arguments)}`, 'debug');
+	try {
+		let output = await vscode.commands.executeCommand(runner?.command?.command ?? 'rust-analyzer.runSingle', ...(runner?.command?.arguments || []));
+		if (output) {
+			log(`output: ${output}`, 'debug');
+		}
+	} catch (error: unknown) {
+		handleUnexpectedError(error);
+	}
 }

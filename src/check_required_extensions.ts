@@ -28,7 +28,9 @@ function loadExtensions(): Promise<boolean> {
 
 export default async function checkRequiredExtentions() {
     try {
-        rustAnalyzerLoading = await loadExtensions();
+        setTimeout(async () => {
+            rustAnalyzerLoading = await loadExtensions();
+        }, 1000);
     }
     catch (error: unknown) {
         if (error instanceof MissingExtension) {

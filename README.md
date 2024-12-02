@@ -4,14 +4,14 @@
 
 ![cover](https://github.com/codeitlikemiley/cargo-runner/blob/v2/images/icon.jpg?raw=true)
 
-> No Unicorn and crab was harm during the creation of this tool.
+> No unicorns or crabs were harmed during the creation of this tool.
 
 ## Requirements
 
 - rust-analyzer
 - codelldb
 
-**NOTE**: if this are missing then the extension will not be loaded
+**NOTE**: If these are missing, the extension will not load.
 
 ## Features
 
@@ -49,9 +49,7 @@
 
 > **NOTE**: **main() fn** would be the **fallback** scope on any file , if **main() fn** exists on that file, considering it as the parent module to run cargo commands on.
 
-> Even if your are on **main.rs** and you **don't have**  **main() fn** , it would'nt run any cargo commands on that file.
-
-This gives us the ability to run **cargo build** on any build.rs file even if `rust-analyzer` doesn't support it.
+> Even if your are in **main.rs** and you **don't have**  **main() fn** , it will not execute any cargo commands in that file.
 
 ### Test
 
@@ -74,7 +72,7 @@ mod tests {
 }
 ```
 
-NOTE: The scope varies , if your cursor is on the **scope outside** any **fn test** , it would then go up its **parent module** and run all the tests in that module. In the example above it would run all test on **mod tests** as its parent module.
+NOTE: The scope varies , if your cursor is on a **scope outside** any **fn test** , it will go up to its parent module and run all the tests in that module.
 
 > To Enable `cargo-nextest` set `cargoRunner.enableNextest` to `true` in your `settings.json`
 
@@ -111,7 +109,7 @@ NOTE: The scope varies , if you put your cursor on the **Struct** definition and
 
 ```rust
 fn main() {
-    println!("Hello, world!"); <!-- add break point here
+    println!("Hello, world!"); // add break point here
 }
 ```
 
@@ -130,7 +128,7 @@ Note: This would only work if `codelldb` is installed.
 rustup override set nightly
 ```
 
-2. Add to the root of the module e.g. `main.rs` 
+2. Add to the root of the module (e.g. `main.rs`)
 
 Root module means
 
@@ -172,11 +170,11 @@ mod tests {
 
 #### Rules:
 
-**Rule 1**: You can either add or remove configurations but at the same time.
+**Rule 1**: You can either add or remove configurations, but not both at the same time.
 
 **Rule 2**: You can combine one or more keywords when adding or removing configurations.
 
-**Rule 3**: Order don't matter when typing keywords to add or remove config. except when you marked the start of test binary args with `--` , everything you type there be save as test binary args.
+**Rule 3**: Order does not matter when typing keywords to add or remove configurations. However, when marking the start of test binary arguments with --, everything typed afterward will be saved as test binary arguments.
 
 **Rule 4**: Removing configurations is marked with `!`  for more info head to [Removing Configuration](#removing-configuration)
 
@@ -205,7 +203,7 @@ It would be saved on your `settings.json`  as follows
 ],
 ```
 
-example command output:
+Example command output:
 
 ```sh
 cargo run --package codec --bin codec --release --profile=default
@@ -362,7 +360,7 @@ It would be saved on your `settings.json`  as follows
 
 ### Bonus
 
-Note: This is not part of the plugin but is a cargo related feature that would help you manage your cargo workspace.
+Note: This is not part of the plugin but is a Cargo-related feature that helps manage your workspace.
 
 <details>
 <summary>
@@ -445,7 +443,7 @@ default = ["example"]
 example = []
 ```
 
-Note the difference on using `required-features` and `features` from `rust-analyzer.cargo.features` is that you can specifically choose the specific `bin` or `lib` you want to require features for , unlike **overriding** the **rust-analyzer.cargo.features** which can take effect on all `bin` and `lib`.
+The **required-features** field allows fine-grained control over specific binaries or libraries, unlike overriding **rust-analyzer.cargo.features**, which applies on workspace level.
 
 **path** field can be **inferred** from the **directory layout** of the source files.
 

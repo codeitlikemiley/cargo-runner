@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/codeitlikemiley/cargo-runner"
   },
-  "version": "2.0.0",
+  "version": "1.5.1",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -46,7 +46,7 @@
         },
         "cargoRunner.logLevel": {
           "type": "string",
-          "default": "debug",
+          "default": "error",
           "description": "Set the logging level for Cargo Runner",
           "enum": [
             "debug",
@@ -58,6 +58,11 @@
           "type": "string",
           "default": "",
           "description": "Path to Cargo home directory. If not set, defaults to CARGO_HOME environment variable or ~/.cargo"
+        },
+        "cargoRunner.nextest.enable": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable cargo-nextest integration"
         }
       }
     },
@@ -84,6 +89,10 @@
       {
         "command": "cargo.runner",
         "title": "Cargo Runner"
+      },
+      {
+        "command": "cargo.rust-analyzer.config",
+        "title": "Cargo Runner: Override Config"
       }
     ],
     "keybindings": [
@@ -92,6 +101,11 @@
         "key": "ctrl+r",
         "mac": "cmd+r",
         "when": "resourceFilename =~ /\\.(rs)$/ && editorTextFocus && editorLangId == rust && editorHasDefinitionProvider"
+      },
+      {
+        "command": "cargo.rust-analyzer.config",
+        "key": "ctrl+shift+r",
+        "mac": "cmd+shift+r"
       }
     ]
   },

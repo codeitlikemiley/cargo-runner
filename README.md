@@ -15,23 +15,25 @@
 
 ## Features
 
-- [x] **One Key to rule them all** - press <kbd>CMD</kbd>+<kbd>R</kbd> to run any command. (can be re-mapped in keyboard shortcuts)
+- [x] **Command Runner** - press <kbd>CMD</kbd>+<kbd>R</kbd> to run any command on your current cursor position.
 
-- [x] **Rust Analyzer Integration** - all default commands are derived from rust-analyzer
+- [x] **Override Rust Analyzer Config** - press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd> to override any rust-analyzer command.
 
 - [x] **Cargo Toml Integration** - parse useful `Metadata`  from `Cargo.toml`
 
-- [x] **Override $CARGO_HOME**  from vscode settings
+- [x] **Codelldb Debugger Integration** - add breakpoints to debug your code.
 
-- [x] **Rust Crate: `cargo-nextest` Integration** (optional) - faster way to run tests with multiple threads
+- [x] **Rust Analyzer Integration** - Override `rust-analyzer` config from vscode settings
 
-- [x] **Codelldb Debugger Integration** - to debug your code
+- [x] **Cargo Nextest Integration** - Enable / Disable `cargo-nextest` from vscode settings
 
-- [x] **Rust Analyzer Config Integration** - share same rust-analyzer config across all rust-analyzer commands
+- [x] **Override $CARGO_HOME**  from vscode settings (used by `cargo-nextest`)
 
 ## Use cases
 
 ### Run
+
+[read more about cargo run](https://doc.rust-lang.org/cargo/commands/cargo-run.html)
 
 1. Run Main
 
@@ -53,6 +55,8 @@ This gives us the ability to run **cargo build** on any build.rs file even if `r
 
 ### Test
 
+[read more about cargo test](https://doc.rust-lang.org/cargo/commands/cargo-test.html)
+
 1. Create a test 
 
 ```rust
@@ -71,6 +75,8 @@ mod tests {
 ```
 
 NOTE: The scope varies , if your cursor is on the **scope outside** any **fn test** , it would then go up its **parent module** and run all the tests in that module. In the example above it would run all test on **mod tests** as its parent module.
+
+> To Enable `cargo-nextest` set `cargoRunner.enableNextest` to `true` in your `settings.json`
 
 2.  Press <kbd>CMD</kbd>+<kbd>R</kbd> on any code block you want to run tests on
 
@@ -162,45 +168,61 @@ mod tests {
 
 
 
-### Rust Analyzer Config Integration
+### Overriding/Configuring Rust Analyzer Settings
+
+#### Rules:
+
+**Rule 1**: You can either add or remove configurations but at the same time.
+
+**Rule 2**: You can combine one or more keywords when adding or removing configurations.
+
+**Rule 3**: Order don't matter when typing keywords to add or remove config. except when you marked the start of test binary args with `--` , everything you type there be save as test binary args.
+
+**Rule 4**: Removing configurations is marked with `!`  for more info head to [Removing Configuration](#removing-configuration)
+
+#### Usage:
+
+- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd> or bind it to a key you like.
+
+- type the params , env, features, target, test binary args you want to add or remove.
+
+
+#### Adding configuration
 
 1. Adding Cargo Arguments
 
-- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>P</kbd>
-
-- type `Cargo Runner: Cargo Args` and press <kbd>ENTER</kbd>
-
-- type all the args you want as you would normally do on the command line.
-
-e.g. `--release`
+type: e.g. `--release --profile=default`
 
 It would be saved on your `settings.json`  as follows
 
+<details>
+<summary>settings.json</summary>
+
 ```json
 "rust-analyzer.runnables.extraArgs": [
-        "--release"
+        "--release",
+        "profile=default"
 ],
 ```
-
-The Next time you press <kbd>CMD</kbd>+<kbd>R</kbd> it would run the following command with the args you defined appended to the end.
 
 example command output:
 
 ```sh
-cargo run --package codec --bin codec --no-default-features --release
+cargo run --package codec --bin codec --release --profile=default
 ```
+
+</details>
 
 2. Adding Test Binary Args
 
-- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>P</kbd>
+**IMPORTANT**: The `--` should be added to mark the start of adding test binary args.
 
-- type `Cargo Runner: Test Args` and press <kbd>ENTER</kbd>
-
-- type all the args you want as you would normally do on the command line.
-
-e.g. `--quiet --show-output --color=always --nocapture`
+type: e.g. `-- --quiet --show-output --color=always --nocapture`
 
 It would be saved on your `settings.json`  as follows
+
+<details>
+<summary>settings.json</summary>
 
 ```json
 "rust-analyzer.runnables.extraTestBinaryArgs": [
@@ -213,11 +235,12 @@ It would be saved on your `settings.json`  as follows
 
 This would be used for both `cargo test` and `cargo-nextest` when generating the command to run.
 
-
 example command output:
 ```sh
 cargo test --package codec --bin codec -- tests::it_works --exact --quiet --show-output --color=always --nocapture
 ```
+
+</details>
 
 </br>
 
@@ -231,16 +254,12 @@ cargo test --package codec --bin codec -- tests::it_works --exact --quiet --show
 
 3. Adding ENV vars
 
-- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>P</kbd>
-
-- type `Cargo Runner: ENV Vars` and press <kbd>ENTER</kbd>
-
-- type all the env vars you want as you would normally do on the command line.
-
-e.g. `RUST_BACKTRACE=full RUST_LOG=debug`
-
+type e.g. `RUST_BACKTRACE=full RUST_LOG=debug`
 
 it would be saved on your `settings.json`  as follows
+
+<details>
+<summary>settings.json</summary>
 
 ```json
 "rust-analyzer.runnables.extraEnv": {
@@ -249,20 +268,20 @@ it would be saved on your `settings.json`  as follows
 }
 ```
 
+</details>
+
 4. Adding Features
 
-- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>P</kbd>
+[list all features on crates](https://doc.rust-lang.org/cargo/reference/features.html#inspecting-resolved-features)
 
-- type `Cargo Runner: Features` and press <kbd>ENTER</kbd>
+[Resolver version 2 command-line flags](https://doc.rust-lang.org/cargo/reference/features.html#resolver-version-2-command-line-flags)
 
-- type all the features you want as you would normally do on the command line.
-
-e.g. You can use any of the following formats
-
-- `example default no-default`
-- `example,default, no-default` 
+type e.g. `--features=example,default --no-default-features`
 
 it would be saved on your `settings.json`  as follows
+
+<details>
+<summary>settings.json</summary>
 
 ```json
 "rust-analyzer.cargo.noDefaultFeatures": true,
@@ -272,45 +291,46 @@ it would be saved on your `settings.json`  as follows
 ],
 ```
 
-The next time you press <kbd>CMD</kbd>+<kbd>R</kbd> it would run the following command with the features you defined appended to the end.
-
 example command output:
 
 ```sh
 cargo run --package codec --bin codec --features example --features default --no-default-features
 ```
 
+</details>
+
+
 **NOTE** : This is not recommended for workspaces setup as any features define here would also be applied to all crates in the workspace.
 
 For better control over features , check [Bonus](#bonus) section.
 
+
 5. Add Target
 
-- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>P</kbd>
-- type `Cargo Runner: Target` and press <kbd>ENTER</kbd>
-- type the target you want to use
-
-e.g. `wasm32-unknown-unknown`
+type e.g. `--target=wasm32-unknown-unknown`
 
 It would be saved on your `settings.json`  as follows
 
-`settings.json`
+<details>
+
+<summary>settings.json</summary>
+
 ```json
 {
     "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
 }
 ```
 
+</details>
 
-### Bonus
+6. Add rust-analyzer specific target directory 
 
-1. Add rust-analyzer specific target directory **(OPTIONAL BUT RECOMMENDED)**
-
-- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>P</kbd>
-- type `Cargo Runner: Rust Analyzer Target Dir` and press <kbd>ENTER</kbd>
-
+type `--cargo-target-dir`
 
 It would be saved on your `settings.json`  as follows
+
+<details>
+<summary>settings.json</summary>
 
 ```json
 {
@@ -318,27 +338,102 @@ It would be saved on your `settings.json`  as follows
 }
 ```
 
-This prevents rust-analyzer's cargo check and initial build-script and proc-macro building from locking the Cargo.lock at the expense of duplicating build artifacts.
+</details>
+
+> This prevents rust-analyzer's cargo check and initial build-script and proc-macro building from locking the Cargo.lock at the expense of duplicating build artifacts.
+
+
+#### Removing Configuration
+
+1. Remove Extra Args : type `!args` or just `!` for shortcut
+
+2. Removing Test Binary Args : type `!--` 
+
+3. Removing ENV vars : type `!env`
+
+4. Removing Features : type `!features`
+
+5. Removing Target : type `!target`
+
+6. Removing Cargo Target Dir: type `!targetDir`
 
 
 ---
 
-2. Changing Required features **(Recommended)**
+### Bonus
+
+Note: This is not part of the plugin but is a cargo related feature that would help you manage your cargo workspace.
+
+<details>
+<summary>
+1. Using Required features **(Recommended)**
+</summary>
+
+[required-features field](https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-required-features-field)
+
+ This is only relevant for the [[bin]], [[bench]], [[test]], and [[example]] sections, it has no effect on [lib].
+
+
+ ```toml
+ [lib]
+name = "foo"           # The name of the target.
+path = "src/lib.rs"    # The source file of the target.
+test = true            # Is tested by default.
+doctest = true         # Documentation examples are tested by default.
+bench = true           # Is benchmarked by default.
+doc = true             # Is documented by default.
+proc-macro = false     # Set to `true` for a proc-macro library.
+harness = true         # Use libtest harness.
+edition = "2015"       # The edition of the target.
+crate-type = ["lib"]   # The crate types to generate.
+required-features = [] # Features required to build this target (N/A for lib).
+```
+
+ [target auto discovery](https://doc.rust-lang.org/cargo/reference/cargo-targets.html#target-auto-discovery)
+
+
+Note: The list of targets can be configured in the Cargo.toml manifest, often inferred automatically by the directory layout of the source files.
+
+This is the default directory layout for any cargo project.
+
+```sh
+ .
+├── Cargo.lock
+├── Cargo.toml
+├── src/
+│   ├── lib.rs
+│   ├── main.rs
+│   └── bin/
+│       ├── named-executable.rs
+│       ├── another-executable.rs
+│       └── multi-file-executable/
+│           ├── main.rs
+│           └── some_module.rs
+├── benches/
+│   ├── large-input.rs
+│   └── multi-file-bench/
+│       ├── main.rs
+│       └── bench_module.rs
+├── examples/
+│   ├── simple.rs
+│   └── multi-file-example/
+│       ├── main.rs
+│       └── ex_module.rs
+└── tests/
+    ├── some-integration-tests.rs
+    └── multi-file-test/
+        ├── main.rs
+        └── test_module.rs
+```
 
 Note: This would only work if you already defined your features on `Cargo.toml`
 
-- Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>P</kbd>
-- type `Cargo Runner: Required Features` and press <kbd>ENTER</kbd>
-- Select from entries from  `examples`, `benches` , `src/bin` or `lib`  
-- Press <kbd>ENTER</kbd>
-- List of available features would be shown
-- select the features you want to require
-- Press <kbd>ENTER</kbd>
 
 
-It would update your `Cargo.toml`  as follows
+Example:
 
 `Cargo.toml`
+
 ```toml
 [[bin]]
 name = "codec"
@@ -352,6 +447,18 @@ example = []
 
 Note the difference on using `required-features` and `features` from `rust-analyzer.cargo.features` is that you can specifically choose the specific `bin` or `lib` you want to require features for , unlike **overriding** the **rust-analyzer.cargo.features** which can take effect on all `bin` and `lib`.
 
+**path** field can be **inferred** from the **directory layout** of the source files.
+
+The path field specifies where the source for the crate is located, relative to the Cargo.toml file.
+
+If not specified, the inferred path is used based on the target name.
+
+</details>
+
+## Issues
+If you find any issues please open an issue on the [github repo](https://github.com/codeitlikemiley/cargo-runner/issues/new).
+
+Note: You can set the `Cargo Runner: Log Level` to **debug** on vscode settings to get more info on what is happening.
 
 ## [License](./LICENSE)
 

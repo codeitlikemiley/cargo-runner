@@ -98,7 +98,7 @@ export default async function codelensExec(codeLenses: vscode.CodeLens[]): Promi
 	try {
 		let output = await vscode.commands.executeCommand(runner?.command?.command ?? 'rust-analyzer.runSingle', ...(runner?.command?.arguments || []));
 		if (output) {
-			log(`output: ${output}`, 'debug');
+			log(`output: ${JSON.stringify(output)}`, 'debug');
 		}
 	} catch (error: unknown) {
 		handleUnexpectedError(error);

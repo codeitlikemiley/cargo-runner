@@ -4,7 +4,7 @@ All notable changes to the "cargo-runner" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## 2.0.0
+## 1.5.1
 - Use Rust Analyzer Config and Cargo.toml to override args
 - Better Documentation and examples on how to use the extension
 - Better Check for missing extensions prior to loading the extension
@@ -21,3 +21,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Add ability to override $CARGO_HOME from vscode settings
 - Add ability to change log level from vscode settings
 - Add ability to change priority symbol kinds from vscode settings (You wouldnt want to change it though as the default is already well tested)
+- Add nextest enable/disable from vscode settings
+- Add Cargo Runner: Override Config Command and Keyboard Shortcut
+- Support Rust Analyzer Config.
+- Add Ability to Add one or more rust-analyzer config.
+- Add Ability to Remove one or more rust-analyzer config.

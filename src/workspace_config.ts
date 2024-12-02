@@ -1,10 +1,12 @@
 import * as vscode from 'vscode';
-import { cargoHome } from './cargo_home';
 
 interface CargoRunnerConfig {
 	prioritySymbolKinds: vscode.SymbolKind[];
 	logLevel: 'debug' | 'info' | 'error';
 	cargoHome: string;
+	nextest: {
+		enable: boolean;
+	};
 }
 
 export default function workspaceConfig(): CargoRunnerConfig {
@@ -18,7 +20,10 @@ export default function workspaceConfig(): CargoRunnerConfig {
 	};
 	return {
 		prioritySymbolKinds: config.get<string[]>('prioritySymbolKinds', ['Module', 'Object', 'Struct', 'Enum', 'Function']).map(kind => symbolKindMap[kind]),
-		logLevel: config.get('logLevel', 'debug'),
-		cargoHome: config.get('cargoHome', '')
+		logLevel: config.get('logLevel', 'error'),
+		cargoHome: config.get('cargoHome', ''),
+		nextest: {
+			enable: config.get('nextest.enable', false),
+		},
 	};
 }

@@ -21,8 +21,6 @@
 
 For more info [read rules](#rules)
 
-- [x] **Cargo Toml Integration** - parse useful `Metadata`  from `Cargo.toml` can be used by `Task Runner`
-
 - [x] **Codelldb Debugger Integration** - add breakpoints to debug your code.
 
 - [x] **Rust Analyzer Integration** - share rust-analyzer built-in configuration.

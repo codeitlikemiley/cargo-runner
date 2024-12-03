@@ -17,13 +17,15 @@
 
 - [x] **Command Runner** - press <kbd>CMD</kbd>+<kbd>R</kbd> to run any command on your current cursor position.
 
-- [x] **Override Rust Analyzer Config** - press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd> to override any rust-analyzer command.
+- [x] **Override Rust Analyzer Config** - press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd> to override any command on `workspace level` by providing cargo args , test binary args, ENV, features.
 
-- [x] **Cargo Toml Integration** - parse useful `Metadata`  from `Cargo.toml`
+For more info [read rules](#rules)
+
+- [x] **Cargo Toml Integration** - parse useful `Metadata`  from `Cargo.toml` can be used by `Task Runner`
 
 - [x] **Codelldb Debugger Integration** - add breakpoints to debug your code.
 
-- [x] **Rust Analyzer Integration** - Override `rust-analyzer` config from vscode settings
+- [x] **Rust Analyzer Integration** - share rust-analyzer built-in configuration.
 
 - [x] **Cargo Nextest Integration** - Enable / Disable `cargo-nextest` from vscode settings
 

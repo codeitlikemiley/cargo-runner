@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import { NoActiveEditor } from './errors';
 
+const activeEditor = vscode.window.activeTextEditor;
+
 function getActiveEditor(): vscode.TextEditor {
-	const activeEditor = vscode.window.activeTextEditor;
 	if (!activeEditor) {
 		throw new NoActiveEditor('No active editor found');
 	}
@@ -18,7 +19,7 @@ function getDocument(): vscode.TextDocument {
 }
 
 function getFilePath(): string {
-	return getDocument().uri.fsPath;
+     return activeEditor?.document.uri.fsPath ?? vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? process.cwd();	
 }
 
 export { getActiveEditor, cursorPosition, getDocument, getFilePath };

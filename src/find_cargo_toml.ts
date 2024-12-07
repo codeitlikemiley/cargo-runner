@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { getFilePath } from './editor';
 
-function findCargoToml(filePath: string) {
+function findCargoToml() {
+    let filePath  = getFilePath();
     let currentDir = path.dirname(filePath);
     const workspaceRoot = vscode.workspace.rootPath || process.cwd();
     let cargoTomlPath = path.join(currentDir, 'Cargo.toml');

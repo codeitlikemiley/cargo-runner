@@ -8,6 +8,20 @@ class SymbolNotFound extends Error {
 	}
 }
 
+class InvalidToolChain extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = 'InvalidToolChain';
+	}
+}
+
+class CargoManifestNotFound extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = 'CargoManifestNotFound';
+	}
+}
+
 class NoRelevantSymbol extends Error {
 	constructor(message: string) {
 		super(message);
@@ -48,4 +62,4 @@ function handleUnexpectedError(error: unknown) {
 	vscode.window.showErrorMessage(`Cargo Runner Error: ${errorMessage}`);
 	log(`[ERROR] ${errorMessage}`, 'error');
 }
-export { SymbolNotFound, NoRelevantSymbol, CodelensNotFound, NoActiveEditor, RunnerNotFound,MissingExtension, handleUnexpectedError };
+export { SymbolNotFound, NoRelevantSymbol, CodelensNotFound, NoActiveEditor, RunnerNotFound,MissingExtension, handleUnexpectedError, InvalidToolChain,CargoManifestNotFound };

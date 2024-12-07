@@ -10,7 +10,7 @@ export default function handleCustomBench(runner: vscode.CodeLens) {
 		runner.command?.arguments?.[0]?.args?.cargoArgs?.includes('--test') &&
 		runner.command?.title === "▶︎ Run Bench"
 	) {
-		const cargoTomlPath = findCargoToml(getDocument().uri.fsPath);
+		const cargoTomlPath = findCargoToml();
 		if (!cargoTomlPath) {
 			log('Cargo.toml not found in the workspace root', 'debug');
 			return;

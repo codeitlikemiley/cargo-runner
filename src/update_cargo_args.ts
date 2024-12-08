@@ -1,4 +1,13 @@
 import * as vscode from 'vscode';
+import fs from 'fs';
+import { findCargoToml } from './find_cargo_toml';
+import path from 'path';
+import { CargoManifestNotFound, InvalidToolChain } from './errors';
+import * as toml from '@iarna/toml';
+import { isValidToolchain } from './toolchains';
+import { removeChannel, updateChannel } from './rust-toolchain';
+import { log } from './logger';
+
 
 export const updateRustAnalyzerConfig = vscode.commands.registerCommand('cargo.rust-analyzer.config', async () => {
     const args = await vscode.window.showInputBox({
@@ -14,6 +23,7 @@ export const updateRustAnalyzerConfig = vscode.commands.registerCommand('cargo.r
         let cargoTarget: string | null | undefined;
         let noDefaultFeatures: boolean | undefined;
         let targetDir: boolean | undefined;
+        let rustChannel: string | null = null;
 
         const config = vscode.workspace.getConfiguration('rust-analyzer');
 
@@ -64,10 +74,27 @@ export const updateRustAnalyzerConfig = vscode.commands.registerCommand('cargo.r
                 } else if (arg === '--') {
                     extraTestBinaryArgs.push(...argsArray.slice(i + 1));
                     break;
-                } else {
+                } else if (arg.startsWith('+')) {
+                    const potentialToolchain = arg.substring(1);
+                    if (isValidToolchain(potentialToolchain)) {
+                        log(`Setting rust channel to: ${potentialToolchain}`, 'debug');
+                        rustChannel = potentialToolchain;
+                    } else {
+                        throw new InvalidToolChain(`Invalid toolchain was provided: ${potentialToolchain}`);
+                    }
+                }
+                else {
                     extraArgs.push(arg);
                 }
             }
+        }
+
+        if (rustChannel) {
+            const cargoFilePath = findCargoToml();
+
+            if (!cargoFilePath) { throw new CargoManifestNotFound('Cargo.toml file Not found'); }
+
+            updateChannel(cargoFilePath, rustChannel);
         }
 
         if (features.size > 0) {
@@ -96,30 +123,33 @@ export const updateRustAnalyzerConfig = vscode.commands.registerCommand('cargo.r
 });
 
 const resetConfig = async (arg: string, config: vscode.WorkspaceConfiguration) => {
-	switch (arg) {
-		case "!features":
-			await config.update('cargo.features', undefined, vscode.ConfigurationTarget.Workspace);
-			await config.update('cargo.noDefaultFeatures', undefined, vscode.ConfigurationTarget.Workspace);
-			vscode.window.showInformationMessage('cargo features reset');
-			break;
-		case "!target":
-			await config.update('cargo.target', undefined, vscode.ConfigurationTarget.Workspace);
-			vscode.window.showInformationMessage('cargo target reset');
-			break;
-		case "!targetDir":
-			await config.update('cargo.targetDir', undefined, vscode.ConfigurationTarget.Workspace);
-			vscode.window.showInformationMessage('cargo target reset');
-			break;
-		case "!env":
-			await config.update('runnables.extraEnv', undefined, vscode.ConfigurationTarget.Workspace);
-			vscode.window.showInformationMessage('cargo environment variables reset');
-			break;
-		case "!--":
-			await config.update('runnables.extraTestBinaryArgs', undefined, vscode.ConfigurationTarget.Workspace);
-			vscode.window.showInformationMessage('extra test binary args reset');
-			break;
-		default:
-			await config.update('runnables.extraArgs', undefined, vscode.ConfigurationTarget.Workspace);
-			vscode.window.showInformationMessage('cargo extra args reset');
-	}
+    switch (arg) {
+        case "!channel":
+            removeChannel();
+            break;
+        case "!features":
+            await config.update('cargo.features', undefined, vscode.ConfigurationTarget.Workspace);
+            await config.update('cargo.noDefaultFeatures', undefined, vscode.ConfigurationTarget.Workspace);
+            vscode.window.showInformationMessage('cargo features reset');
+            break;
+        case "!target":
+            await config.update('cargo.target', undefined, vscode.ConfigurationTarget.Workspace);
+            vscode.window.showInformationMessage('cargo target reset');
+            break;
+        case "!targetDir":
+            await config.update('cargo.targetDir', undefined, vscode.ConfigurationTarget.Workspace);
+            vscode.window.showInformationMessage('cargo target reset');
+            break;
+        case "!env":
+            await config.update('runnables.extraEnv', undefined, vscode.ConfigurationTarget.Workspace);
+            vscode.window.showInformationMessage('cargo environment variables reset');
+            break;
+        case "!--":
+            await config.update('runnables.extraTestBinaryArgs', undefined, vscode.ConfigurationTarget.Workspace);
+            vscode.window.showInformationMessage('extra test binary args reset');
+            break;
+        default:
+            await config.update('runnables.extraArgs', undefined, vscode.ConfigurationTarget.Workspace);
+            vscode.window.showInformationMessage('cargo extra args reset');
+    }
 };

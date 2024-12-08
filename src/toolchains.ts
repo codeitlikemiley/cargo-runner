@@ -1,6 +1,5 @@
-export const VALID_TOOLCHAINS = ['nightly', 'stable', 'beta'] as const;
-export type Toolchain = (typeof VALID_TOOLCHAINS)[number];
+export const CHANNEL_REGEX = /^(?:stable|beta|nightly|\d+(?:\.\d+){1,2})(?:-\d{4}(?:-\d{2}){2})?(?:-\D[^-]*(?:(?:-(?:[^-]+)){1,3}))?$/;
 
-export const isValidToolchain = (input: string): input is Toolchain => {
-    return VALID_TOOLCHAINS.includes(input as Toolchain);
-};
+export function isValidToolchain(toolchain: string): boolean {
+    return CHANNEL_REGEX.test(toolchain);
+}

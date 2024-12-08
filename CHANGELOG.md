@@ -4,7 +4,8 @@ All notable changes to the "cargo-runner" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## 1.5.1
+## 1.5.2
+- Added support for `rust-toolchain.toml` file to add `channel` by typing `+beta` , `+nightly` or `+stable` when Overriding Config.
 - Use Rust Analyzer Config and Cargo.toml to override args
 - Better Documentation and examples on how to use the extension
 - Better Check for missing extensions prior to loading the extension

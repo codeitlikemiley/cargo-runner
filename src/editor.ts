@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import { NoActiveEditor } from './errors';
-
-const activeEditor = vscode.window.activeTextEditor;
+import { log } from './logger';
 
 function getActiveEditor(): vscode.TextEditor {
+	const activeEditor = vscode.window.activeTextEditor;
 	if (!activeEditor) {
 		throw new NoActiveEditor('No active editor found');
 	}
@@ -19,7 +19,25 @@ function getDocument(): vscode.TextDocument {
 }
 
 function getFilePath(): string {
-     return activeEditor?.document.uri.fsPath ?? vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? process.cwd();	
+	try {
+		const activeEditor = vscode.window.activeTextEditor;
+
+		if (activeEditor) { return activeEditor.document.uri.fsPath; }
+
+		log('No active editor found', 'debug');
+		const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+
+		if (workspaceFolder) {
+			log(`Workspace folder found: ${workspaceFolder}`, 'debug');
+			return workspaceFolder;
+		}
+
+		log('No workspace folder found, returning cwd', 'debug');
+		return process.cwd();
+	} catch (error) {
+		log(`Error getting file path: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+		return process.cwd();
+	}
 }
 
-export { getActiveEditor, cursorPosition, getDocument, getFilePath };
+export { cursorPosition, getDocument, getFilePath };

@@ -122,11 +122,20 @@ Note: This would only work if `codelldb` is installed.
 
 ### Bench
 
-1. set version of rust to `nightly`
+1. set version of rust to `nightly` in `rust-toolchain.toml` using our  [Override Command](#override-config)
+
+Do the Following:
+- press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd> to override rust-analyzer config
+
+- type: `+nightly`
+
+- it would be saved on your `rust-toolchain.toml`  as follows
 
 ```sh
-rustup override set nightly
+[toolchain]
+channel = "nightly"
 ```
+
 
 2. Add to the root of the module (e.g. `main.rs`)
 
@@ -166,7 +175,7 @@ mod tests {
 
 
 
-### Overriding/Configuring Rust Analyzer Settings
+### Override Config
 
 #### Rules:
 

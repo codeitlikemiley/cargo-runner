@@ -4,7 +4,7 @@ import { findCargoToml } from './find_cargo_toml';
 import fs from 'fs';
 import path from 'path';
 import { log } from './logger';
-import { JsonMap } from '@iarna/toml';
+import { exec } from 'child_process';
 
 
 interface ToolchainConfig {
@@ -125,4 +125,30 @@ export async function removeChannel() {
         }
         throw error;
     }
+}
+
+export function getActiveToolchain(cargoFilePath: string): Promise<string | null> {
+    return new Promise((resolve, reject) => {
+        const cargoDir = path.dirname(cargoFilePath);
+
+        exec('rustup show active-toolchain', { cwd: cargoDir }, (error, stdout, stderr) => {
+            if (error || stderr) {
+                log('Error fetching active toolchain:', 'error');
+                log(error?.message || stderr, 'error');
+                return reject(error || stderr);
+            }
+
+            // Extract the toolchain name from the output (it might be followed by '(default)')
+            // e.g.  stable-aarch64-apple-darwin (default)
+            const toolchain = stdout.split(' ')[0];
+
+            resolve(toolchain || null);
+        });
+    });
+}
+
+export function rustToolchainExists(cargoFilePath: string): boolean {
+    const cargoDir = path.dirname(cargoFilePath);
+    const toolchainPath = path.join(cargoDir, 'rust-toolchain.toml');
+    return fs.existsSync(toolchainPath);
 }

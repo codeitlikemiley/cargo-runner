@@ -6,6 +6,8 @@ import testSymbolPattern from './test_symbol_pattern';
 import handleCustomBench from './handle_custom_bench';
 import getRelevantSymbol from './get_relevant_symbol';
 import isCargoNextestInstalled from './is_nextest_installed';
+import { findCargoToml } from './find_cargo_toml';
+import { getActiveToolchain, rustToolchainExists } from './rust-toolchain';
 
 export default async function codelensExec(codeLenses: vscode.CodeLens[]): Promise<void> {
 	log(`Fetching rust analyzer config`, 'debug');
@@ -20,6 +22,8 @@ export default async function codelensExec(codeLenses: vscode.CodeLens[]): Promi
 	let runLens = '▶︎ Run ';
 	let docLens = '▶︎ Run Doctest';
 	let debugLens = 'Debug';
+
+	let channel: string | null | undefined;
 
 	const run: vscode.CodeLens | undefined = codeLenses.find(lens => lens.command?.title === runLens);
 	const bench: vscode.CodeLens | undefined = codeLenses.find(lens => lens.command?.title === benchLens);
@@ -43,9 +47,18 @@ export default async function codelensExec(codeLenses: vscode.CodeLens[]): Promi
 		throw new RunnerNotFound("No Runner found");
 	}
 
+	let cargoTomlPath = findCargoToml();
+
+	if (cargoTomlPath && rustToolchainExists(cargoTomlPath)) {
+		channel = await getActiveToolchain(cargoTomlPath);
+	}
+
 	if (relevantBreakpoints.length > 0 && debuggable?.command?.title === 'Debug') {
 		log(`Running Debugger on relevant breakpoint`, 'debug');
-		// TODO: inject here our custom config if we have define one
+
+		if (debuggable.command?.arguments?.[0]?.args.overrideCargo === null && channel) {
+			debuggable.command.arguments[0].args.overrideCargo = `cargo +${channel}`;
+		}
 		await vscode.commands.executeCommand(
 			debuggable.command.command,
 			...(debuggable.command.arguments || [])
@@ -60,7 +73,7 @@ export default async function codelensExec(codeLenses: vscode.CodeLens[]): Promi
 		runner.command.arguments[0].args.cargoArgs[0] = "run";
 		runner.command.arguments[0].args.cargoArgs.unshift("nextest");
 
-        // load extraArgs from config
+		// load extraArgs from config
 		let extraTestBinaryArgs = rustAnalyzerConfig.get<string[]>("runnables.extraTestBinaryArgs") || ["--nocapture"];
 		log(`extraTestBinaryArgs ${JSON.stringify(extraTestBinaryArgs)}`, "debug");
 
@@ -68,23 +81,23 @@ export default async function codelensExec(codeLenses: vscode.CodeLens[]): Promi
 		const testName = runner.command.arguments[0].args.executableArgs[0];
 		log(`testName: ${testName}`, "debug");
 
-        // correctly set the test pattern
+		// correctly set the test pattern
 		const testPattern = testSymbolPattern(nearestSymbol, testName, isModule);
 
 		log(`: ${testPattern}`, "debug");
 		let testParams = ["-E", testPattern];
-        // add extra test binary args
+		// add extra test binary args
 		runner.command.arguments[0].args.cargoArgs.push(...testParams);
-        
+
 		// for nightly bench do custom handling
 		handleCustomBench(runner);
-	    // remove executable args as this is not supported by cargo-nextest	
+		// remove executable args as this is not supported by cargo-nextest	
 		runner.command.arguments[0].args.executableArgs = [];
-        
+
 		// remove conflicting args from extraTestBinaryArgs only for cargo-nextest
 		const argsToFilter = ["--show-output", "--quiet", "--exact"];
 		extraTestBinaryArgs = [...extraTestBinaryArgs.filter(arg => !argsToFilter.includes(arg))];
-        // add extraTestBinaryArgs to cargoArgs
+		// add extraTestBinaryArgs to cargoArgs
 		runner.command.arguments[0].args.cargoArgs.push(...extraTestBinaryArgs);
 	}
 
@@ -96,6 +109,11 @@ export default async function codelensExec(codeLenses: vscode.CodeLens[]): Promi
 
 	log(`arguments: ${JSON.stringify(runner?.command?.arguments)}`, 'debug');
 	try {
+
+		if (runner.command?.arguments?.[0]?.args.overrideCargo === null && channel) {
+			runner.command.arguments[0].args.overrideCargo = `cargo +${channel}`;
+		}
+
 		let output = await vscode.commands.executeCommand(runner?.command?.command ?? 'rust-analyzer.runSingle', ...(runner?.command?.arguments || []));
 		if (output) {
 			log(`output: ${JSON.stringify(output)}`, 'debug');

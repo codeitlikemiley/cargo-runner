@@ -4,7 +4,8 @@ All notable changes to the "cargo-runner" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## 1.5.3
+## 1.5.4
+- add note on read me on known issues and how to fix it on `rust-analyzer.server.extraEnv`
 - update overrideCargo on codelens structure to make use of `active-toolchain` ,eg.`cargo +stable-aarch64-apple-darwin`
 - Added support for `rust-toolchain.toml` file to add `channel` by typing `+beta` , `+nightly` or `+stable` when Overriding Config.
 - Use Rust Analyzer Config and Cargo.toml to override args

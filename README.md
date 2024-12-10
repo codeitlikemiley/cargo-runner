@@ -480,6 +480,22 @@ If not specified, the inferred path is used based on the target name.
 
 </details>
 
+## Known Issues Fix
+
+[rust-toolchain.toml in sub-directories are not respected](https://github.com/rust-lang/rust-analyzer/issues/15165)
+
+if you are using multiple rust toolchains , and there is an error on vscode.
+
+- `#![feature]` may not be used on the stable release channel
+
+If you wanna silence this error , add the following to your `settings.json`
+ 
+```
+"rust-analyzer.server.extraEnv": {
+    "RUSTUP_TOOLCHAIN": "nightly"
+},
+```
+
 ## Issues
 If you find any issues please open an issue on the [github repo](https://github.com/codeitlikemiley/cargo-runner/issues/new).
 

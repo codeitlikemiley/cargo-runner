@@ -2,11 +2,11 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { log } from './logger';
 import { CodelensNotFound, handleUnexpectedError, RunnerNotFound } from './errors';
-import { updateRustAnalyzerServerExtraENV } from './update_ra_server_extra_env';
 import { nextestRunner, useCargoNextest } from './nextest';
 import { getDocument } from './editor';
 import { findCargoToml } from './cargo_manifest';
 import { getBreakpoints, find_symbol } from './document_symbols';
+import serverExtraEnv from './rust_analyzer/server_extraEnv';
 
 export async function run(): Promise<void> {
 
@@ -27,7 +27,7 @@ export async function run(): Promise<void> {
 	let cargoTomlPath = findCargoToml();
 
 	if (cargoTomlPath) {
-		updateRustAnalyzerServerExtraENV(config, cargoTomlPath, runner);
+		serverExtraEnv(config, cargoTomlPath, runner);
 		runner.command.arguments[0].args.workspaceRoot = path.dirname(cargoTomlPath);
 	}
 

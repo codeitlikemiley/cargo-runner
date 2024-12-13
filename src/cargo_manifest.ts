@@ -5,7 +5,7 @@ import { getFilePath } from './editor';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
-import { cargo_runner_config } from './cargo-runner';
+import { getCargoRunnerConfig } from './cargo_runner';
 
 export interface CargoToml {
     bench?: Array<{
@@ -55,6 +55,6 @@ export function parseCargoManifest(filePath: string): CargoToml | null {
 
 
 export function cargoHome() {
-    return cargo_runner_config().cargoHome || process.env.CARGO_HOME || path.resolve(os.homedir(), '.cargo');
+    return getCargoRunnerConfig().cargoHome || process.env.CARGO_HOME || path.resolve(os.homedir(), '.cargo');
 }
 

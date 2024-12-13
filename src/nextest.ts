@@ -2,12 +2,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from "vscode";
 import { cargoHome } from './cargo_manifest';
-import { cargo_runner_config } from './cargo-runner';
+import { getCargoRunnerConfig } from './cargo_runner';
 import { log } from "./logger";
-import handleCustomBench from "./handle_custom_bench";
+import handleBenchTest from './bench';
 
 function isCargoNextestEnabled() {
-	return cargo_runner_config().nextest.enable;
+	return getCargoRunnerConfig().nextest.enable;
 }
 
 export async function useCargoNextest(): Promise<boolean> {
@@ -42,7 +42,7 @@ export function nextestRunner(
 		let testParams = ["-E", testPattern];
 		runner.command.arguments[0].args.cargoArgs.push(...testParams);
 
-		handleCustomBench(runner);
+		handleBenchTest(runner);
 
 		runner.command.arguments[0].args.executableArgs = [];
 

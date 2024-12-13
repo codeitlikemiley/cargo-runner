@@ -4,7 +4,7 @@ import { getDocument } from './editor';
 import * as vscode from 'vscode';
 import { findCargoToml, parseCargoManifest } from './cargo_manifest';
 
-export default function handleCustomBench(runner: vscode.CodeLens) {
+export default function handleBenchTest(runner: vscode.CodeLens) {
 	if (
 		runner.command?.arguments?.[0]?.args?.cargoArgs?.includes('--test') &&
 		runner.command?.title === "▶︎ Run Bench"

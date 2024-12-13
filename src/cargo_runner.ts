@@ -38,7 +38,7 @@ interface CargoRunnerConfig {
 	};
 }
 
-export function cargo_runner_config(): CargoRunnerConfig {
+export function getCargoRunnerConfig(): CargoRunnerConfig {
 	const config = vscode.workspace.getConfiguration('cargoRunner');
 	const symbolKindMap: Record<string, vscode.SymbolKind> = {
 		Module: vscode.SymbolKind.Module,

@@ -3,8 +3,8 @@ import { getDocument } from './editor';
 import { cursorPosition } from "./editor";
 import { NoRelevantSymbol } from "./errors";
 import { log } from "./logger";
-import resolveKind from './resolve_kind';
-import { cargo_runner_config } from "./cargo-runner";
+import resolveKind from './symbol_kind';
+import { getCargoRunnerConfig } from "./cargo_runner";
 import { SymbolNotFound } from './errors';
 
 export function getBreakpoints(symbol: vscode.DocumentSymbol): vscode.Breakpoint[] {
@@ -24,7 +24,7 @@ export function getBreakpoints(symbol: vscode.DocumentSymbol): vscode.Breakpoint
 }
 
 export async function find_symbol(): Promise<vscode.DocumentSymbol> {
-    const config = cargo_runner_config();
+    const config = getCargoRunnerConfig();
     const position = cursorPosition();
     const symbols = await getSymbols();
 
@@ -34,7 +34,7 @@ export async function find_symbol(): Promise<vscode.DocumentSymbol> {
     const isPositionInSymbol = (pos: vscode.Position, symbol: vscode.DocumentSymbol) =>
         isPositionWithinRange(pos, symbol.range) || isPositionWithinRange(pos, symbol.selectionRange);
 
-    if (cargo_runner_config().logLevel === 'debug') {
+    if (config.logLevel === 'debug') {
         symbols.forEach(symbol => {
             log(`Symbol: ${symbol.name}, Kind: ${resolveKind(symbol)}, Range: (${symbol.range.start.line}-${symbol.range.end.line})`, 'debug');
             symbol.children.forEach(child => {

@@ -26,12 +26,10 @@ class CargoRunnerTaskProvider implements vscode.TaskProvider {
 	}
 }
 
-
 export const taskProvider = vscode.tasks.registerTaskProvider(
 	CargoRunnerTaskProvider.cargoType,
 	new CargoRunnerTaskProvider()
 );
-
 
 // TODO: This would be used to run commands from Config
 export function task_run(command: string, args: string[]) {

@@ -374,6 +374,8 @@ It would be saved on your `settings.json`  as follows
 ],
 ```
 
+</details>
+
 7. Add rust channel to `rust-toolchain.toml`
 
 type: `+nightly` or any valid rust channel format e.g. `+1.83.0` , `+nightly-2023-08-01`, `+stable-x86_64-pc-windows-msvc` 

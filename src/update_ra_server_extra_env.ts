@@ -1,5 +1,5 @@
 import { log } from "./logger";
-import { getActiveToolchain, rustToolchainExists } from "./rust-toolchain";
+import { getActiveToolchain, rustToolchainExists } from "./toolchain";
 import * as vscode from "vscode";
 
 export async function updateRustAnalyzerServerExtraENV(config: vscode.WorkspaceConfiguration, cargoTomlPath: string, runner: vscode.CodeLens, envKey: string = "RUSTUP_TOOLCHAIN"): Promise<void> {

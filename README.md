@@ -1,6 +1,12 @@
 # Cargo Runner
 
-> Streamline your Rust development with Cargo Runner, a powerful tool that simplifies your workflow and enhances your productivity.
+
+<img src="https://vsmarketplacebadges.dev/downloads-short/masterustacean.cargo-runner.svg"/>
+
+</br>
+</br>
+
+> A Complementary Tool to [rust-analyzer](https://github.com/rust-analyzer/rust-analyzer) to streamline your Rust development and enhance your productivity.
 
 ![cover](https://github.com/codeitlikemiley/cargo-runner/blob/v2/images/icon.jpg?raw=true)
 

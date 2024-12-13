@@ -1,11 +1,10 @@
 import * as toml from '@iarna/toml';
 import { CargoManifestNotFound, InvalidToolChain } from './errors';
-import { findCargoToml } from './find_cargo_toml';
 import fs from 'fs';
 import path from 'path';
 import { log } from './logger';
 import { exec } from 'child_process';
-
+import { findCargoToml } from './cargo_manifest';
 
 interface ToolchainConfig {
     toolchain?: {
@@ -15,7 +14,6 @@ interface ToolchainConfig {
         profile?: string;
     };
 }
-
 
 export function updateChannel(cargoFilePath: string, rustToolchain: string) {
     const toolchainFilePath = path.join(path.dirname(cargoFilePath), 'rust-toolchain.toml');
@@ -42,8 +40,8 @@ export function updateChannel(cargoFilePath: string, rustToolchain: string) {
             log(JSON.stringify(toolchainConfig, null, 2), "debug");
         } catch (error) {
             if (error instanceof Error) {
-            log('Failed to parse rust-toolchain.toml:', "error");
-            log(error.message, "error");
+                log('Failed to parse rust-toolchain.toml:', "error");
+                log(error.message, "error");
             }
             throw new Error('Invalid TOML file format.');
         }
@@ -100,7 +98,6 @@ export function updateChannel(cargoFilePath: string, rustToolchain: string) {
     }
 }
 
-
 export async function removeChannel() {
     let cargoPath = findCargoToml();
     if (!cargoPath) { throw new CargoManifestNotFound('Cargo.toml file not found'); }
@@ -113,7 +110,7 @@ export async function removeChannel() {
 
         if (isOnlyChannel) {
             // Remove entire content if only `channel` exists
-            await fs.unlinkSync(filePath); 
+            await fs.unlinkSync(filePath);
         } else {
             // Remove only the `channel` line
             const updatedContent = content.replace(/channel\s*=\s*"[^"]*"\s*\n?/, '');
@@ -151,4 +148,10 @@ export function rustToolchainExists(cargoFilePath: string): boolean {
     const cargoDir = path.dirname(cargoFilePath);
     const toolchainPath = path.join(cargoDir, 'rust-toolchain.toml');
     return fs.existsSync(toolchainPath);
+}
+
+const CHANNEL_REGEX = /^(?:stable|beta|nightly|\d+(?:\.\d+){1,2})(?:-\d{4}(?:-\d{2}){2})?(?:-\D[^-]*(?:(?:-(?:[^-]+)){1,3}))?$/;
+
+export function isValidToolchain(toolchain: string): boolean {
+    return CHANNEL_REGEX.test(toolchain);
 }

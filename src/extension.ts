@@ -1,12 +1,9 @@
 import * as vscode from 'vscode';
-
-import checkRequiredExtentions from './check_required_extensions';
-import { updateRustAnalyzerConfig } from './update_cargo_args';
-import { cargoRunner } from './cargo-runner';
-import { taskProvider } from './task-provider';
+import { getCargoRunnerConfig, cargoRunner } from './cargo_runner';
 import { getOutputChannel, log } from './logger';
-import workspaceConfig from './workspace_config';
-
+import { taskProvider } from './task_runner';
+import { rustAnalyzerConfig } from './rust_analyzer_config';
+import { checkRequiredExtentions } from './requirements';
 
 export async function activate(context: vscode.ExtensionContext) {
 	await checkRequiredExtentions();
@@ -14,11 +11,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(getOutputChannel());
 	context.subscriptions.push(taskProvider);
 	context.subscriptions.push(cargoRunner);
-	context.subscriptions.push(updateRustAnalyzerConfig);
+	context.subscriptions.push(rustAnalyzerConfig);
 	context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() => {
-		log(JSON.stringify(workspaceConfig()), 'debug');
+		log(JSON.stringify(getCargoRunnerConfig()), 'debug');
 	}));
-
 }
 
 export function deactivate() { }

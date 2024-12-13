@@ -1,11 +1,10 @@
 import * as path from 'path';
-import { findCargoToml } from './find_cargo_toml';
-import getCargoToml from './get_cargo_toml';
 import { log } from './logger'; 
 import { getDocument } from './editor';
 import * as vscode from 'vscode';
+import { findCargoToml, parseCargoManifest } from './cargo_manifest';
 
-export default function handleCustomBench(runner: vscode.CodeLens) {
+export default function handleBenchTest(runner: vscode.CodeLens) {
 	if (
 		runner.command?.arguments?.[0]?.args?.cargoArgs?.includes('--test') &&
 		runner.command?.title === "▶︎ Run Bench"
@@ -16,7 +15,7 @@ export default function handleCustomBench(runner: vscode.CodeLens) {
 			return;
 		}
 
-		const cargo = getCargoToml(cargoTomlPath ?? '');
+		const cargo = parseCargoManifest(cargoTomlPath ?? '');
 		if (!cargo?.bench?.length) {
 			log('No benches found in Cargo.toml', 'debug');
 			return;

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import workspaceConfig from './workspace_config';
+import { getCargoRunnerConfig } from './cargo_runner';
 
 let globalOutputChannel: vscode.OutputChannel | null = null;
 
@@ -12,7 +12,7 @@ function getOutputChannel(): vscode.OutputChannel {
 
 function log(message: string, level: 'debug' | 'info' | 'error') {
 	const outputChannel = getOutputChannel();
-	let config = workspaceConfig();
+	let config = getCargoRunnerConfig();
 
 	const logLevels = {
 		'debug': 0,

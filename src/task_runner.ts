@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 
-
 class CargoRunnerTaskProvider implements vscode.TaskProvider {
 	static cargoType: string = 'cargo-runner';
 
@@ -27,8 +26,13 @@ class CargoRunnerTaskProvider implements vscode.TaskProvider {
 	}
 }
 
+export const taskProvider = vscode.tasks.registerTaskProvider(
+	CargoRunnerTaskProvider.cargoType,
+	new CargoRunnerTaskProvider()
+);
+
 // TODO: This would be used to run commands from Config
-function createAndExecuteTask(command: string, args: string[]) {
+export function task_run(command: string, args: string[]) {
 	const fullCommand = [command, ...args].join(' ');
 	const task = new vscode.Task(
 		{ type: 'cargo-runner', command: fullCommand },
@@ -40,5 +44,3 @@ function createAndExecuteTask(command: string, args: string[]) {
 	);
 	vscode.tasks.executeTask(task);
 }
-
-export { CargoRunnerTaskProvider, createAndExecuteTask };

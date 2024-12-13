@@ -2,17 +2,15 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { log } from './logger';
 import { CodelensNotFound, handleUnexpectedError, RunnerNotFound } from './errors';
-import { findCargoToml } from './find_cargo_toml';
-import { updateRustAnalyzerServerExtraENV } from './update_ra_server_extra_env';
-import { nextestRunner } from './nextest_runner';
-import { getRelevantBreakpoints } from './get_relevant_breakpoints';
-import { isCargoNextestInstalled } from './is_nextest_installed';
-import { getRelevantSymbol } from './get_relevant_symbol';
+import { nextestRunner, useCargoNextest } from './nextest';
 import { getDocument } from './editor';
+import { findCargoToml } from './cargo_manifest';
+import { getBreakpoints, find_symbol } from './document_symbols';
+import serverExtraEnv from './rust_analyzer/server_extraEnv';
 
 export async function run(): Promise<void> {
 
-	const relevantSymbol = await getRelevantSymbol();
+	const relevantSymbol = await find_symbol();
 
 	const codelens = await getLenses(relevantSymbol);
 
@@ -29,13 +27,11 @@ export async function run(): Promise<void> {
 	let cargoTomlPath = findCargoToml();
 
 	if (cargoTomlPath) {
-		updateRustAnalyzerServerExtraENV(config, cargoTomlPath, runner);
+		serverExtraEnv(config, cargoTomlPath, runner);
 		runner.command.arguments[0].args.workspaceRoot = path.dirname(cargoTomlPath);
 	}
 
-	const isNextest = await isCargoNextestInstalled();
-
-	if (isNextest) {
+	if (await useCargoNextest()) {
 		nextestRunner(runner, config, relevantSymbol, isModule, testLens, benchLens);
 	}
 
@@ -108,7 +104,7 @@ function codelensMetadata(
 	const doc: vscode.CodeLens | undefined = codeLenses.find(lens => lens.command?.title === docLens);
 	const debuggable: vscode.CodeLens | undefined = codeLenses.find(lens => lens.command?.title === debugLens);
 
-	const relevantBreakpoints = getRelevantBreakpoints(nearestSymbol);
+	const relevantBreakpoints = getBreakpoints(nearestSymbol);
 
 	log(`Relevant breakpoints: ${JSON.stringify(relevantBreakpoints)}\n`, 'debug');
 	log(`run: ${run?.command?.title}\n`, 'debug');

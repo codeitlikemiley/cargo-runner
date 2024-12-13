@@ -1,15 +1,10 @@
 import * as vscode from 'vscode';
-import fs from 'fs';
-import { findCargoToml } from './find_cargo_toml';
-import path from 'path';
 import { CargoManifestNotFound, InvalidToolChain } from './errors';
-import * as toml from '@iarna/toml';
-import { isValidToolchain } from './toolchains';
-import { removeChannel, updateChannel } from './rust-toolchain';
+import { isValidToolchain, removeChannel, updateChannel } from './toolchain';
 import { log } from './logger';
+import { findCargoToml } from './cargo_manifest';
 
-
-export const updateRustAnalyzerConfig = vscode.commands.registerCommand('cargo.rust-analyzer.config', async () => {
+export const rustAnalyzerConfig = vscode.commands.registerCommand('cargo.rust-analyzer.config', async () => {
     const args = await vscode.window.showInputBox({
         prompt: 'Add or Remove Rust Analyzer Config'
     });

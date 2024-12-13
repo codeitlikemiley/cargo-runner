@@ -1,8 +1,22 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from "vscode";
+import { cargoHome } from './cargo_manifest';
+import { getCargoRunnerConfig } from './cargo_runner';
 import { log } from "./logger";
-import testSymbolPattern from "./test_symbol_pattern";
-import handleCustomBench from "./handle_custom_bench";
+import handleBenchTest from './bench';
 
+function isCargoNextestEnabled() {
+	return getCargoRunnerConfig().nextest.enable;
+}
+
+export async function useCargoNextest(): Promise<boolean> {
+	if (!isCargoNextestEnabled()) {
+		return false;
+	}
+	const cargoNextestPath = path.join(cargoHome(), 'bin', 'cargo-nextest');
+	return fs.existsSync(cargoNextestPath);
+}
 
 export function nextestRunner(
 	runner: vscode.CodeLens,
@@ -12,7 +26,7 @@ export function nextestRunner(
 	testLens: string,
 	benchLens: string
 ) {
-	if (runner?.command?.arguments?.[0].args && ( runner?.command?.title === testLens || runner?.command?.title === benchLens)) {
+	if (runner?.command?.arguments?.[0].args && (runner?.command?.title === testLens || runner?.command?.title === benchLens)) {
 		runner.command.arguments[0].args.cargoArgs[0] = "run";
 		runner.command.arguments[0].args.cargoArgs.unshift("nextest");
 
@@ -28,7 +42,7 @@ export function nextestRunner(
 		let testParams = ["-E", testPattern];
 		runner.command.arguments[0].args.cargoArgs.push(...testParams);
 
-		handleCustomBench(runner);
+		handleBenchTest(runner);
 
 		runner.command.arguments[0].args.executableArgs = [];
 
@@ -38,4 +52,18 @@ export function nextestRunner(
 		runner.command.arguments[0].args.cargoArgs.push(...extraTestBinaryArgs);
 	}
 
+}
+
+function testSymbolPattern(nearestSymbol: vscode.DocumentSymbol, testName: string, isModule: boolean): string {
+	if (isModule) {
+		return `test(/^${nearestSymbol.name}::.*$/)`;
+	}
+
+	const symbolIndex = testName.lastIndexOf(nearestSymbol.name);
+	if (symbolIndex === -1) {
+		return `test(/^${testName}$/)`;
+	}
+
+	const pathUpToSymbol = testName.substring(0, symbolIndex + nearestSymbol.name.length);
+	return `test(/^${pathUpToSymbol}$/)`;
 }

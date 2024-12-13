@@ -1,15 +1,11 @@
 import * as vscode from 'vscode';
-import getRelevantSymbol from './get_relevant_symbol';
-import getCodelenses from './get_codelens';
-import codelensExec from './codelens_exec';
 import { CodelensNotFound, handleUnexpectedError, NoActiveEditor, NoRelevantSymbol, RunnerNotFound, SymbolNotFound } from './errors';
 import { log } from './logger';
+import {  run } from './codelens';
 
 export const cargoRunner = vscode.commands.registerCommand('cargo.runner', async () => {
     try {
-        const relevantSymbol = await getRelevantSymbol();
-        const codelens = await getCodelenses(relevantSymbol);
-        await codelensExec(codelens);
+        await run();
     } catch (error: unknown) {
         switch ((error as { name: string }).name) {
             case NoActiveEditor.name:

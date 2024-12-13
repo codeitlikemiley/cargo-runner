@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { cargoHome, isCargoNextestEnabled } from './cargo_home';
 
-export default async function isCargoNextestInstalled(): Promise<boolean> {
+export  async function isCargoNextestInstalled(): Promise<boolean> {
 	if (!isCargoNextestEnabled()) {
 		return false;
 	}

@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import workspaceConfig from "./workspace_config";
 import resolveKind from './resolve_kind';
 
-export default async function getRelevantSymbol(): Promise<vscode.DocumentSymbol> {
+export async function getRelevantSymbol(): Promise<vscode.DocumentSymbol> {
 	const config = workspaceConfig();
 	const position = cursorPosition();
 	const symbols = await getSymbols();

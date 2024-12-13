@@ -191,7 +191,7 @@ mod tests {
 
 - Press <kbd>CMD</kbd>+<kbd>SHIFT</kbd>+<kbd>R</kbd> or bind it to a key you like.
 
-- type the params , env, features, target, test binary args you want to add or remove.
+- type the params , env, features, cargo-target, target, test binary args you want to add or remove.
 
 
 #### Adding configuration
@@ -312,9 +312,13 @@ cargo run --package codec --bin codec --features example --features default --no
 For better control over features , check [Bonus](#bonus) section.
 
 
-5. Add Target
+5. Adding target
 
-type e.g. `--target=wasm32-unknown-unknown`
+**A. Add --cargo-target**
+
+If you want to enable target specific features, you have to add the target to the cargo target.
+
+type e.g. `--cargo-target=wasm32-unknown-unknown`
 
 It would be saved on your `settings.json`  as follows
 
@@ -330,9 +334,34 @@ It would be saved on your `settings.json`  as follows
 
 </details>
 
-6. Add rust-analyzer specific target directory 
+Note: To check if this has any effect on your code.
 
-type `--cargo-target-dir`
+We need to compare the code with the following example:
+
+
+```rust
+#[cfg(target_arch = "wasm32")]
+fn main() {
+    println!("Hello, world!");
+}
+```
+
+This code is active 
+
+
+```
+#[cfg(not(target_arch = "wasm32"))]
+fn main() {
+    println!("Hello, world!");
+}
+```
+
+while on 2nd example code is [inactive](https://rust-analyzer.github.io/manual.html#inactive-code)
+
+
+**B. Add --target**
+
+type e.g. `--target=wasm32-unknown-unknown`
 
 It would be saved on your `settings.json`  as follows
 
@@ -340,12 +369,10 @@ It would be saved on your `settings.json`  as follows
 <summary>settings.json</summary>
 
 ```json
-{
-"rust-analyzer.cargo.targetDir": true,
-}
+"rust-analyzer.runnables.extraArgs": [
+        "--target=wasm32-unknown-unknown",
+],
 ```
-
-</details>
 
 7. Add rust channel to `rust-toolchain.toml`
 
@@ -479,22 +506,6 @@ The path field specifies where the source for the crate is located, relative to 
 If not specified, the inferred path is used based on the target name.
 
 </details>
-
-## Known Issues Fix
-
-[rust-toolchain.toml in sub-directories are not respected](https://github.com/rust-lang/rust-analyzer/issues/15165)
-
-if you are using multiple rust toolchains , and there is an error on vscode.
-
-- `#![feature]` may not be used on the stable release channel
-
-If you wanna silence this error , add the following to your `settings.json`
- 
-```
-"rust-analyzer.server.extraEnv": {
-    "RUSTUP_TOOLCHAIN": "nightly"
-},
-```
 
 ## Issues
 If you find any issues please open an issue on the [github repo](https://github.com/codeitlikemiley/cargo-runner/issues/new).

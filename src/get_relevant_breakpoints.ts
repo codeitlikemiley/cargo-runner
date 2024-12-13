@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { getDocument } from './editor';
 
 
-export default function getRelevantBreakpoints(symbol: vscode.DocumentSymbol): vscode.Breakpoint[] {
+export  function getRelevantBreakpoints(symbol: vscode.DocumentSymbol): vscode.Breakpoint[] {
 	return vscode.debug.breakpoints.filter(breakpoint => {
 		if (breakpoint instanceof vscode.SourceBreakpoint) {
 			const { location } = breakpoint;

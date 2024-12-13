@@ -4,7 +4,8 @@ All notable changes to the "cargo-runner" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## 1.5.5
+## 1.5.6
+- Update `rust-analyzer.cargo.target` with `--cargo-target` flag while `--target` would be `rust-analyzer.cargo.extraArgs`
 - Auto-update `rust-analyzer.server.extraEnv` if your cargo crates have multiple `rust-toolchain.toml`
 - add note on read me on known issues and how to fix it on `rust-analyzer.server.extraEnv`
 - update overrideCargo on codelens structure to make use of `active-toolchain` ,eg.`cargo +stable-aarch64-apple-darwin`

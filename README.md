@@ -277,6 +277,8 @@ it would be saved on your `settings.json`  as follows
 
 </details>
 
+For more info check [Setting up runnables environment variables](https://github.com/rust-lang/rust-analyzer/blob/master/docs/user/manual.adoc#setting-runnable-environment-variables)
+
 4. Adding Features
 
 [list all features on crates](https://doc.rust-lang.org/cargo/reference/features.html#inspecting-resolved-features)
@@ -376,6 +378,27 @@ It would be saved on your `settings.json`  as follows
 
 </details>
 
+**A. Add --target-dir**
+
+> This prevents rust-analyzer's cargo check and initial build-script and proc-macro building from locking the Cargo.lock at the expense of duplicating build artifacts.
+
+>Set to **true** to use a subdirectory of the existing target directory or set to a path relative to the workspace to use that path.
+
+type: e.g. `--target-dir=true` or `--target-dir=false` or `--target-dir`
+
+It would be saved on your `settings.json`  as follows
+
+<details>
+<summary>settings.json</summary>
+
+```json
+"rust-analyzer.cargo.targetDir": true,
+```
+
+</details>
+
+</br>
+
 7. Add rust channel to `rust-toolchain.toml`
 
 type: `+nightly` or any valid rust channel format e.g. `+1.83.0` , `+nightly-2023-08-01`, `+stable-x86_64-pc-windows-msvc` 
@@ -405,23 +428,28 @@ channel = "nightly"
 
 3. Removing ENV vars : type `!env`
 
+TODO: granular control on env vars with `rust-analyzer.runnables.extraEnv` see: [Setting up runnables environment variables](https://github.com/rust-lang/rust-analyzer/blob/master/docs/user/manual.adoc#setting-runnable-environment-variables)
+
 4. Removing Features : type `!features`
 
-5. Removing Target : type `!target`
+5. Removing Cargo Target : type `!target`
 
 6. Removing Cargo Target Dir: type `!targetDir`
 
+Note: to remove `--target` just use the default `!` or `!args`
 
 ---
 
-### Bonus
+### Configuration Files
 
 Note: This is not part of the plugin but is a Cargo-related feature that helps manage your workspace.
 
 <details>
 <summary>
-1. Using Required features **(Recommended)**
+1. Cargo.toml
 </summary>
+
+**Adding Features**
 
 [required-features field](https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-required-features-field)
 
@@ -507,7 +535,23 @@ The path field specifies where the source for the crate is located, relative to 
 
 If not specified, the inferred path is used based on the target name.
 
+For other more info about Cargo Manifest Format check [Cargo Manifest Format](https://doc.rust-lang.org/cargo/reference/manifest.html)
+
 </details>
+
+2. Usage of `.cargo/config.toml`
+
+For more info on how to configure manually `.cargo/config` check [Config file](https://doc.rust-lang.org/cargo/reference/config.html#configuration-format)
+
+3. Toolchain
+
+For more info on how to configure manually check [Toolchain File](https://rust-lang.github.io/rustup/overrides.html#the-toolchain-file)
+
+
+
+4. Cargo Workspace (Cargo.toml)
+
+For more info on how to configure manually check [Cargo Workspace](https://doc.rust-lang.org/cargo/reference/workspaces.html)
 
 ## Issues
 If you find any issues please open an issue on the [github repo](https://github.com/codeitlikemiley/cargo-runner/issues/new).

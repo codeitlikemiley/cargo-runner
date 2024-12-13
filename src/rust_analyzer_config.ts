@@ -16,8 +16,8 @@ export const rustAnalyzerConfig = vscode.commands.registerCommand('cargo.rust-an
         const features: Set<string> = new Set();
         const extraEnv: Record<string, string> = {};
         let cargoTarget: string | null | undefined;
+        let cargoTargetDir: boolean | undefined;
         let noDefaultFeatures: boolean | undefined;
-        let targetDir: boolean | undefined;
         let rustChannel: string | null = null;
 
         const config = vscode.workspace.getConfiguration('rust-analyzer');
@@ -46,22 +46,19 @@ export const rustAnalyzerConfig = vscode.commands.registerCommand('cargo.rust-an
                         noDefaultFeatures = true;
                     }
 
-                } else if (arg.startsWith('--target')) {
-
-                    const match = arg.match(/--target(?:=|\s)([^\s,]+(?:,[^\s,]+)*)/);
+                } else if (arg.startsWith('--cargo-target')) {
+                    const match = arg.match(/--cargo-target(?:=|\s)([^\s,]+(?:,[^\s,]+)*)/);
                     if (match && match[1]) {
                         cargoTarget = match[1].toString();
                     }
-                } else if (arg.startsWith('--cargo-target-dir')) {
-
-                    const match = arg.match(/--cargo-target-dir(?:=(true|false))?/);
-
+                }
+                else if (arg.startsWith('--target-dir')) {
+                    const match = arg.match(/--target-dir(?:=(true|false))?/);
                     if (match) {
-                        targetDir = match[1] === 'false' ? false : true;
+                        cargoTargetDir = match[1] === 'false' ? false : true;
                     } else {
-                        targetDir = true;
+                        cargoTargetDir = true;
                     }
-
                 }
                 else if (/^[A-Z_]+=/.test(arg)) {
                     const [key, value] = arg.split('=');
@@ -98,8 +95,11 @@ export const rustAnalyzerConfig = vscode.commands.registerCommand('cargo.rust-an
         if (noDefaultFeatures) {
             await config.update('cargo.noDefaultFeatures', noDefaultFeatures ?? false, vscode.ConfigurationTarget.Workspace);
         }
-        if (targetDir) {
-            await config.update('cargo.targetDir', targetDir, vscode.ConfigurationTarget.Workspace);
+        if (cargoTarget) {
+            await config.update('cargo.target', cargoTarget, vscode.ConfigurationTarget.Workspace);
+        }
+        if (cargoTargetDir) {
+            await config.update('cargo.targetDir', cargoTargetDir, vscode.ConfigurationTarget.Workspace);
         }
         if (extraArgs.length > 0) {
             await config.update('runnables.extraArgs', extraArgs, vscode.ConfigurationTarget.Workspace);
@@ -109,9 +109,6 @@ export const rustAnalyzerConfig = vscode.commands.registerCommand('cargo.rust-an
         }
         if (Object.keys(extraEnv).length > 0) {
             await config.update('runnables.extraEnv', extraEnv, vscode.ConfigurationTarget.Workspace);
-        }
-        if (cargoTarget) {
-            await config.update('cargo.target', cargoTarget, vscode.ConfigurationTarget.Workspace);
         }
         vscode.window.showInformationMessage('Config Updated');
     }

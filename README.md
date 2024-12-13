@@ -1,7 +1,9 @@
 # Cargo Runner
 
+> Open VSX | Vscode Marketplace
 
-<img src="https://vsmarketplacebadges.dev/downloads-short/masterustacean.cargo-runner.svg"/>
+![Open VSX Downloads](https://img.shields.io/open-vsx/dt/masterustacean/cargo-runner) ![Vscode Marketplace](https://vsmarketplacebadges.dev/downloads-short/masterustacean.cargo-runner.svg)
+
 
 </br>
 </br>

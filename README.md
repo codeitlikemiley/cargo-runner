@@ -577,3 +577,7 @@ Note: You can set the `Cargo Runner: Log Level` to **debug** on vscode settings 
 If you think I help you in anyway, and want to help me keep doing what I love, the best way to say thank you is to sponsor me on GitHub.
 
 ---
+
+## Stargazers over time
+[![Stargazers over time](https://starchart.cc/codeitlikemiley/cargo-runner.svg?variant=adaptive)](https://starchart.cc/codeitlikemiley/cargo-runner)
+

@@ -4,6 +4,46 @@ All notable changes to the "cargo-runner" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 1.6.0
+
+### Added
+- New `env_handler.ts` module for reliable environment variable handling.
+- Task-based execution method for properly passing environment variables to Cargo commands.
+- New `useTaskExecution` setting to control environment variable handling method.
+- Enhanced `nextest` integration with proper environment variable support.
+- Improved debugging information about environment variables in Output Channel.
+- Added support for per-project settings via `cargo-runner-settings.json`.
+- Added `@` prefix for append mode to merge with existing settings.
+- Support for `#` delimiter to separate cargo arguments from test binary arguments.
+
+### Changed
+- Consolidated command-line argument handling approach.
+  - For project settings, most cargo options now use `runnables.extraArgs`.
+  - For workspace settings, both approaches remain supported.
+- Updated project settings template to include `useTaskExecution: true` by default.
+- Improved error handling for environment variables and command execution.
+- Enhanced `nextest` argument handling when using task execution.
+- Enhanced settings management to support both per-project and workspace settings.
+
+### Fixed
+- Fixed environment variables not being passed to Rust programs.
+- Fixed handling of command-line arguments with spaces or special characters.
+- Improved error reporting when environment variables can't be set.
+- Fixed settings management to support project-specific configurations.
+- Fixed append mode (`@`) to properly merge with existing settings.
+- Fixed test binary arguments delimited by `#` to be properly passed to test executables.
+- Improved toolchain management with `+channel` syntax.
+
+### Documentation
+- Updated README with comprehensive environment variable documentation.
+- Added detailed configuration options table with project vs. workspace settings.
+- Expanded troubleshooting section with environment variable guidance.
+- Added examples for environment variable configuration.
+- Added comprehensive documentation for per-project settings via `cargo-runner-settings.json`.
+- Added documentation for append mode with `@` prefix.
+- Added examples for using the `#` delimiter for test binary arguments.
+- Improved command-line configuration documentation with clear examples.
+
 ## 1.5.6
 - Update `rust-analyzer.cargo.target` with `--cargo-target` flag while `--target` would be `rust-analyzer.cargo.extraArgs`
 - Auto-update `rust-analyzer.server.extraEnv` if your cargo crates have multiple `rust-toolchain.toml`

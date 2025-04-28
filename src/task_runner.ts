@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 class CargoRunnerTaskProvider implements vscode.TaskProvider {
-	static cargoType: string = 'cargo-runner';
+	static cargoType = 'cargo-runner';
 
 	provideTasks(): vscode.ProviderResult<vscode.Task[]> {
 		// Define static tasks if needed

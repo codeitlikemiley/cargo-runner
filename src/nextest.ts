@@ -1,10 +1,11 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import * as vscode from "vscode";
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import type * as vscode from "vscode";
 import { cargoHome } from './cargo_manifest';
 import { getCargoRunnerConfig } from './cargo_runner';
 import { log } from "./logger";
 import handleBenchTest from './bench';
+import { getMergedRustAnalyzerConfig } from './settings_handler';
 
 function isCargoNextestEnabled() {
 	return getCargoRunnerConfig().nextest.enable;
@@ -30,16 +31,18 @@ export function nextestRunner(
 		runner.command.arguments[0].args.cargoArgs[0] = "run";
 		runner.command.arguments[0].args.cargoArgs.unshift("nextest");
 
-		let extraTestBinaryArgs = config.get<string[]>("runnables.extraTestBinaryArgs") || ["--nocapture"];
+		// Use merged configuration that includes project-specific settings
+		const mergedConfig = getMergedRustAnalyzerConfig();
+		let extraTestBinaryArgs = mergedConfig.get<string[]>("runnables.extraTestBinaryArgs") || ["--nocapture"];
 		log(`extraTestBinaryArgs ${JSON.stringify(extraTestBinaryArgs)}`, "debug");
 
 		const testName = runner.command.arguments[0].args.executableArgs[0];
 		log(`testName: ${testName}`, "debug");
 
 		const testPattern = testSymbolPattern(nearestSymbol, testName, isModule);
-		log(`: ${testPattern}`, "debug");
+		log(`Test pattern: ${testPattern}`, "debug");
 
-		let testParams = ["-E", testPattern];
+		const testParams = ["-E", testPattern];
 		runner.command.arguments[0].args.cargoArgs.push(...testParams);
 
 		handleBenchTest(runner);

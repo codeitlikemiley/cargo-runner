@@ -93,6 +93,10 @@
       {
         "command": "cargo.rust-analyzer.config",
         "title": "Cargo Runner: Override Config"
+      },
+      {
+        "command": "cargo.project-settings.edit",
+        "title": "Cargo Runner: Edit Project Settings"
       }
     ],
     "keybindings": [
@@ -136,6 +140,8 @@
   },
   "dependencies": {
     "@iarna/toml": "^2.2.5",
-    "@types/iarna__toml": "^2.0.5"
+    "@types/iarna__toml": "^2.0.5",
+    "@types/glob": "^8.1.0",
+    "glob": "^11.0.2"
   }
 }

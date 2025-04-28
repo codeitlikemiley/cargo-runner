@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 // from : https://code.visualstudio.com/api/references/vscode-api#SymbolKind
 const SymbolKindLookup: { [key: number]: string } = {
     0: "File",

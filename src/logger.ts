@@ -12,7 +12,7 @@ function getOutputChannel(): vscode.OutputChannel {
 
 function log(message: string, level: 'debug' | 'info' | 'error') {
 	const outputChannel = getOutputChannel();
-	let config = getCargoRunnerConfig();
+	const config = getCargoRunnerConfig();
 
 	const logLevels = {
 		'debug': 0,

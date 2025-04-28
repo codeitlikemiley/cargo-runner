@@ -1,28 +1,29 @@
-import * as vscode from 'vscode';
-import { MissingExtension } from './errors';
-import { log } from './logger';
+import * as vscode from "vscode";
+import { MissingExtension } from "./errors";
+import { log } from "./logger";
 
 let rustAnalyzerLoading = true;
 
 function loadExtensions(): Promise<boolean> {
 	return new Promise((resolve, reject) => {
-		const rustAnalyzer = vscode.extensions.getExtension('rust-lang.rust-analyzer');
-		const codeLLDB = vscode.extensions.getExtension('vadimcn.vscode-lldb');
+		const rustAnalyzer = vscode.extensions.getExtension(
+			"rust-lang.rust-analyzer",
+		);
+		const codeLLDB = vscode.extensions.getExtension("vadimcn.vscode-lldb");
 
 		if (!rustAnalyzer?.isActive || !codeLLDB?.isActive) {
-			let extensions: string[] = [];
+			const extensions: string[] = [];
 			if (!rustAnalyzer) {
-				extensions.push('rust-lang.rust-analyzer');
+				extensions.push("rust-lang.rust-analyzer");
 			}
 			if (!codeLLDB) {
-				extensions.push('vadimcn.vscode-lldb');
+				extensions.push("vadimcn.vscode-lldb");
 			}
-			const message = `Missing extension${extensions.length > 1 ? 's' : ''}:\n ${extensions.join(' and ')}`;
-			log(message, 'error');
+			const message = `Missing extension${extensions.length > 1 ? "s" : ""}:\n ${extensions.join(" and ")}`;
+			log(message, "error");
 			throw new MissingExtension(message);
-		} else {
-			resolve(false);
 		}
+		resolve(false);
 	});
 }
 
@@ -31,8 +32,7 @@ export async function checkRequiredExtentions() {
 		setTimeout(async () => {
 			rustAnalyzerLoading = await loadExtensions();
 		}, 1000);
-	}
-	catch (error: unknown) {
+	} catch (error: unknown) {
 		if (error instanceof MissingExtension) {
 			vscode.window.showErrorMessage(error.message);
 			return;

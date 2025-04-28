@@ -1,8 +1,8 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import * as vscode from 'vscode';
-import { log } from './logger';
-import { findCargoToml } from './cargo_manifest';
+import path from "node:path";
+import fs from "node:fs";
+import { findCargoToml } from "./cargo_manifest";
+import { log } from "./logger";
+import * as vscode from "vscode";
 
 /**
  * Interface for cargo-runner-settings.json file structure
@@ -19,6 +19,7 @@ export interface CargoRunnerSettings {
         extraArgs?: string[];
         extraEnv?: Record<string, string>;
         extraTestBinaryArgs?: string[];
+        useTaskExecution?: boolean;
     };
     server?: {
         extraEnv?: Record<string, string>;
@@ -40,6 +41,7 @@ export interface RunnablesSectionProps {
     extraArgs: string[];
     extraEnv: Record<string, string>;
     extraTestBinaryArgs: string[];
+    useTaskExecution: boolean;
 }
 
 export interface ServerSectionProps {

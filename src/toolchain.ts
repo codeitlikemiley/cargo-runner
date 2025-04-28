@@ -1,9 +1,9 @@
 import * as toml from '@iarna/toml';
 import { CargoManifestNotFound, InvalidToolChain } from './errors';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { log } from './logger';
-import { exec } from 'child_process';
+import { exec } from 'node:child_process';
 import { findCargoToml } from './cargo_manifest';
 
 interface ToolchainConfig {
@@ -99,9 +99,9 @@ export function updateChannel(cargoFilePath: string, rustToolchain: string) {
 }
 
 export async function removeChannel() {
-    let cargoPath = findCargoToml();
+    const cargoPath = findCargoToml();
     if (!cargoPath) { throw new CargoManifestNotFound('Cargo.toml file not found'); }
-    let filePath = path.join(path.dirname(cargoPath), 'rust-toolchain.toml');
+    const filePath = path.join(path.dirname(cargoPath), 'rust-toolchain.toml');
     try {
         const content = await fs.readFileSync(filePath, 'utf-8');
 

@@ -1,7 +1,7 @@
-import * as path from 'path';
+import * as path from 'node:path';
 import { log } from './logger'; 
 import { getDocument } from './editor';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { findCargoToml, parseCargoManifest } from './cargo_manifest';
 
 export default function handleBenchTest(runner: vscode.CodeLens) {

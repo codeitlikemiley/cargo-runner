@@ -35,12 +35,12 @@ export async function find_symbol(): Promise<vscode.DocumentSymbol> {
         isPositionWithinRange(pos, symbol.range) || isPositionWithinRange(pos, symbol.selectionRange);
 
     if (config.logLevel === 'debug') {
-        symbols.forEach(symbol => {
+        for (const symbol of symbols) {
             log(`Symbol: ${symbol.name}, Kind: ${resolveKind(symbol)}, Range: (${symbol.range.start.line}-${symbol.range.end.line})`, 'debug');
-            symbol.children.forEach(child => {
+            for (const child of symbol.children) {
                 log(`  Child: ${child.name}, Kind: ${resolveKind(child)}, Range: (${child.range.start.line}-${child.range.end.line})`, 'debug');
-            });
-        });
+            }
+        }
     }
 
     const filter_symbol = (symbols: vscode.DocumentSymbol[]): vscode.DocumentSymbol | null => {

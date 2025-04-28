@@ -1,10 +1,10 @@
 import { parse } from '@iarna/toml';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
 import { log } from './logger';
 import { getFilePath } from './editor';
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as os from 'os';
+import * as path from 'node:path';
+import * as os from 'node:os';
 import { getCargoRunnerConfig } from './cargo_runner';
 
 export interface CargoToml {
@@ -26,7 +26,7 @@ export interface CargoToml {
 }
 
 export function findCargoToml(): string | null {
-    let filePath = getFilePath();
+    const filePath = getFilePath();
 
     let currentDir = fs.lstatSync(filePath).isDirectory() ? filePath : path.dirname(filePath);
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();

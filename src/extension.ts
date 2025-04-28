@@ -4,17 +4,20 @@ import { getOutputChannel, log } from './logger';
 import { taskProvider } from './task_runner';
 import { rustAnalyzerConfig } from './rust_analyzer_config';
 import { checkRequiredExtentions } from './requirements';
+import { editProjectSettings } from './edit_project_settings';
+
 
 export async function activate(context: vscode.ExtensionContext) {
-	await checkRequiredExtentions();
+    await checkRequiredExtentions();
 
-	context.subscriptions.push(getOutputChannel());
-	context.subscriptions.push(taskProvider);
-	context.subscriptions.push(cargoRunner);
-	context.subscriptions.push(rustAnalyzerConfig);
-	context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() => {
-		log(JSON.stringify(getCargoRunnerConfig()), 'debug');
-	}));
+    context.subscriptions.push(getOutputChannel());
+    context.subscriptions.push(taskProvider);
+    context.subscriptions.push(cargoRunner);
+    context.subscriptions.push(rustAnalyzerConfig);
+    context.subscriptions.push(editProjectSettings);
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(() => {
+        log(JSON.stringify(getCargoRunnerConfig()), 'debug');
+    }));
 }
 
 export function deactivate() { }

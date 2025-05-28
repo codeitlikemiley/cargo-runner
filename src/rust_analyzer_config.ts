@@ -182,7 +182,7 @@ async function updateProjectSettings(
     if (isAppendMode) {
         log("Using append mode - merging with existing settings", 'debug');
         
-        // Handle features - merge and deduplicate
+        // Handle features - merge and deduplicate, store as array in project settings
         if (featureArray.length > 0) {
             const existingFeatures = existingSettings.cargo?.features || [];
             const mergedFeatures = deduplicateArray([...existingFeatures, ...featureArray]);
@@ -304,12 +304,19 @@ async function updateWorkspaceSettings(
     if (isAppendMode) {
         log("Using append mode - merging with existing settings", 'debug');
         
-        // Handle features - merge and deduplicate
+        // Handle features - merge and deduplicate, with special handling for "all"
         if (featureArray.length > 0) {
             const existingFeatures = config.get<string[]>('cargo.features') || [];
             const mergedFeatures = deduplicateArray([...existingFeatures, ...featureArray]);
-            await config.update('cargo.features', mergedFeatures, vscode.ConfigurationTarget.Workspace);
-            log(`Updated features: ${mergedFeatures.join(', ')}`, 'debug');
+            
+            // Special case: if merged features contains "all", save as string "all"
+            if (mergedFeatures.includes('all')) {
+                await config.update('cargo.features', 'all', vscode.ConfigurationTarget.Workspace);
+                log("Updated features: all (as string)", 'debug');
+            } else {
+                await config.update('cargo.features', mergedFeatures, vscode.ConfigurationTarget.Workspace);
+                log(`Updated features: ${mergedFeatures.join(', ')}`, 'debug');
+            }
         }
         
         // Handle noDefaultFeatures - override if specified
@@ -372,8 +379,15 @@ async function updateWorkspaceSettings(
         log("Using replace mode - overriding existing settings", 'debug');
         
         if (featureArray.length > 0) {
-            await config.update('cargo.features', featureArray, vscode.ConfigurationTarget.Workspace);
-            log(`Set features: ${featureArray.join(', ')}`, 'debug');
+            // Special case: if features is exactly ["all"], save as string "all"
+            if (featureArray.length === 1 && featureArray[0] === 'all') {
+                await config.update('cargo.features', 'all', vscode.ConfigurationTarget.Workspace);
+                log("Set features: all (as string)", 'debug');
+            } else {
+                // Normal case: save as array
+                await config.update('cargo.features', featureArray, vscode.ConfigurationTarget.Workspace);
+                log(`Set features: ${featureArray.join(', ')}`, 'debug');
+            }
         }
         
         if (noDefaultFeatures !== undefined) {

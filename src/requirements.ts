@@ -5,37 +5,37 @@ import { log } from "./logger";
 let rustAnalyzerLoading = true;
 
 function loadExtensions(): Promise<boolean> {
-	return new Promise((resolve, reject) => {
-		const rustAnalyzer = vscode.extensions.getExtension(
-			"rust-lang.rust-analyzer",
-		);
-		const codeLLDB = vscode.extensions.getExtension("vadimcn.vscode-lldb");
+  return new Promise((resolve, reject) => {
+    const rustAnalyzer = vscode.extensions.getExtension(
+      "rust-lang.rust-analyzer",
+    );
+    const codeLLDB = vscode.extensions.getExtension("vadimcn.vscode-lldb");
 
-		if (!rustAnalyzer?.isActive || !codeLLDB?.isActive) {
-			const extensions: string[] = [];
-			if (!rustAnalyzer) {
-				extensions.push("rust-lang.rust-analyzer");
-			}
-			if (!codeLLDB) {
-				extensions.push("vadimcn.vscode-lldb");
-			}
-			const message = `Missing extension${extensions.length > 1 ? "s" : ""}:\n ${extensions.join(" and ")}`;
-			log(message, "error");
-			throw new MissingExtension(message);
-		}
-		resolve(false);
-	});
+    if (!rustAnalyzer?.isActive || !codeLLDB?.isActive) {
+      const extensions: string[] = [];
+      if (!rustAnalyzer) {
+        extensions.push("rust-lang.rust-analyzer");
+      }
+      if (!codeLLDB) {
+        extensions.push("vadimcn.vscode-lldb");
+      }
+      const message = `Missing extension${extensions.length > 1 ? "s" : ""}:\n ${extensions.join(" and ")}`;
+      log(message, "error");
+      throw new MissingExtension(message);
+    }
+    resolve(false);
+  });
 }
 
 export async function checkRequiredExtentions() {
-	try {
-		setTimeout(async () => {
-			rustAnalyzerLoading = await loadExtensions();
-		}, 1000);
-	} catch (error: unknown) {
-		if (error instanceof MissingExtension) {
-			vscode.window.showErrorMessage(error.message);
-			return;
-		}
-	}
+  try {
+    setTimeout(async () => {
+      rustAnalyzerLoading = await loadExtensions();
+    }, 1000);
+  } catch (error: unknown) {
+    if (error instanceof MissingExtension) {
+      vscode.window.showErrorMessage(error.message);
+      return;
+    }
+  }
 }

@@ -12,12 +12,8 @@
   "engines": {
     "vscode": "^1.85.0"
   },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [
-    "onLanguage:rust"
-  ],
+  "categories": ["Other"],
+  "activationEvents": ["onLanguage:rust"],
   "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
@@ -25,34 +21,18 @@
       "properties": {
         "cargoRunner.prioritySymbolKinds": {
           "type": "array",
-          "default": [
-            "Function",
-            "Enum",
-            "Struct",
-            "Object",
-            "Module"
-          ],
+          "default": ["Function", "Enum", "Struct", "Object", "Module"],
           "description": "Symbol kinds to prioritize for CodeLens actions",
           "items": {
             "type": "string",
-            "enum": [
-              "Module",
-              "Object",
-              "Struct",
-              "Enum",
-              "Function"
-            ]
+            "enum": ["Module", "Object", "Struct", "Enum", "Function"]
           }
         },
         "cargoRunner.logLevel": {
           "type": "string",
           "default": "error",
           "description": "Set the logging level for Cargo Runner",
-          "enum": [
-            "debug",
-            "info",
-            "error"
-          ]
+          "enum": ["debug", "info", "error"]
         },
         "cargoRunner.cargoHome": {
           "type": "string",
@@ -69,10 +49,7 @@
     "taskDefinitions": [
       {
         "type": "cargo-runner",
-        "required": [
-          "command",
-          "title"
-        ],
+        "required": ["command", "title"],
         "properties": {
           "command": {
             "type": "string",

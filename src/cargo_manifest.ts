@@ -1,60 +1,65 @@
-import { parse } from '@iarna/toml';
-import * as fs from 'node:fs';
-import { log } from './logger';
-import { getFilePath } from './editor';
-import * as vscode from 'vscode';
-import * as path from 'node:path';
-import * as os from 'node:os';
-import { getCargoRunnerConfig } from './cargo_runner';
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+import { parse } from "@iarna/toml";
+import * as vscode from "vscode";
+import { getCargoRunnerConfig } from "./cargo_runner";
+import { getFilePath } from "./editor";
+import { log } from "./logger";
 
 export interface CargoToml {
-    bench?: Array<{
-        name: string;
-        path: string;
-    }>;
-    package?: {
-        name?: string;
-    };
-    bin?: Array<{
-        name: string;
-        path: string;
-    }>;
-    lib?: {
-        name?: string;
-        path?: string;
-    };
+  bench?: Array<{
+    name: string;
+    path: string;
+  }>;
+  package?: {
+    name?: string;
+  };
+  bin?: Array<{
+    name: string;
+    path: string;
+  }>;
+  lib?: {
+    name?: string;
+    path?: string;
+  };
 }
 
 export function findCargoToml(): string | null {
-    const filePath = getFilePath();
+  const filePath = getFilePath();
 
-    let currentDir = fs.lstatSync(filePath).isDirectory() ? filePath : path.dirname(filePath);
-    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
+  let currentDir = fs.lstatSync(filePath).isDirectory()
+    ? filePath
+    : path.dirname(filePath);
+  const workspaceRoot =
+    vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || process.cwd();
 
-    let cargoTomlPath = path.join(currentDir, 'Cargo.toml');
+  let cargoTomlPath = path.join(currentDir, "Cargo.toml");
 
-    while (!fs.existsSync(cargoTomlPath)) {
-        if (currentDir === workspaceRoot || currentDir === process.cwd()) {
-            return null;
-        }
-        currentDir = path.dirname(currentDir);
-        cargoTomlPath = path.join(currentDir, 'Cargo.toml');
+  while (!fs.existsSync(cargoTomlPath)) {
+    if (currentDir === workspaceRoot || currentDir === process.cwd()) {
+      return null;
     }
-    return cargoTomlPath;
+    currentDir = path.dirname(currentDir);
+    cargoTomlPath = path.join(currentDir, "Cargo.toml");
+  }
+  return cargoTomlPath;
 }
 
 export function parseCargoManifest(filePath: string): CargoToml | null {
-    try {
-        const cargoTomlContent = fs.readFileSync(filePath, 'utf-8');
-        return parse(cargoTomlContent) as CargoToml;
-    } catch (_) {
-        log('failed to read Cargo.toml', 'debug');
-        return null;
-    }
+  try {
+    const cargoTomlContent = fs.readFileSync(filePath, "utf-8");
+    return parse(cargoTomlContent) as CargoToml;
+  } catch (_) {
+    log("failed to read Cargo.toml", "debug");
+    return null;
+  }
 }
-
 
 export function cargoHome() {
-    return getCargoRunnerConfig().cargoHome || process.env.CARGO_HOME || path.resolve(os.homedir(), '.cargo');
+  return (
+    getCargoRunnerConfig().cargoHome ||
+    process.env.CARGO_HOME ||
+    path.resolve(os.homedir(), ".cargo")
+  );
 }
-

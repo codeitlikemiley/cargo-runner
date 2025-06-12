@@ -4,7 +4,7 @@ All notable changes to the "cargo-runner" extension will be documented in this f
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
-## 1.6.1
+## 1.6.2
 - Added "--features=all" to set `"rust-analyzer.cargo.features": "all",` instead of pushing it to an array
 
 ## 1.6.0
